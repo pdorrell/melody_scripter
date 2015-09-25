@@ -1,0 +1,9 @@
+*song: tempo_bpm=100, beats_per_bar=3, ticks_per_beat=4
+*track.melody: instrument = 73, volume=80, octave=4
+*track.chord: instrument =40, volume=50,octave=3
+*track.bass: instrument=19, volume=120, octave=2
+
+ gh c | [C] c2 eq d ch | [C] e2 [C7] d1 | [F] c2 a1 | [C] g2
+ gh c | [C] c2 eq d ch | e2 dh e | [G] g2
+ eh g | [G] g2 eq d ch | [C] e2 [C7] d1 | [F] c2 a1 | [C] g2
+ gh c | [C] c2 eq d ch | [C] e3 | [G7] d3 | [C] c3
