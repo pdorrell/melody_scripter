@@ -91,7 +91,11 @@ class MidiSong(object):
         midi.write_midifile(file_name, self.midi_data)
         
 def play_midi_file_with_cvlc(file_name):
-    subprocess.call(['/usr/bin/cvlc', file_name, 'vlc://quit'])
+    cvlc_path = '/usr/bin/cvlc'
+    if os.path.exists(cvlc_path):
+        subprocess.call([cvlc_path, file_name, 'vlc://quit'])
+    else:
+        print("Cannot play midi file, %s does not exist on your system" % cvlc_path)
     
 def play_midi_file_with_timidity(file_name):
     subprocess.call(['/usr/bin/timidity', '--output-24bit', file_name])

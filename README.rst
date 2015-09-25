@@ -103,7 +103,7 @@ The **octave** setting determines which Midi octave the first melody note belong
 the **chord** and **bass** tracks, it determines the octave of all root notes and bass notes respectively.
 (Melody note octave values are determined relatively, as will be described in the Song Items section next.)
 
-Although octave values are allowed from -1 to 10, not all midi notes in the 10th octave are allowed,
+Although octave values are allowed from -1 to 10, not all Midi notes in the 10th octave are allowed,
 and an error will occur if a note occurs with a value greater than 127.
 
 Song Items
@@ -227,3 +227,14 @@ Cuts
 A **Cut** is represented by "!". **Cut** means "cut out all previous song items". This song item
 is very useful when you want to play part of the song without starting all the way from the beginning.
 
+
+Playback
+========
+
+The **main()** method of **play_song.py** generates a Midi file from the Song file whose name is
+given as the first argument. After generating the Midi file, this method also plays it using 
+the "/usr/bin/cvlc" command, if that command is available. **cvlc** is the command line version of VLC, 
+as installed on an  Ubuntu system, and it only plays Midi files if the **vlc-plugin-fluidsynth** VLC plugin is installed.
+
+(An alternative playback option on Ubuntu is **timidity**, however even with the **--output-24bit**
+option, on my system, the sound quality is poor at the beginning of the song.)
