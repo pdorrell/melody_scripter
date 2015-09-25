@@ -1,7 +1,8 @@
-*song:         tempo_bpm=180, beats_per_bar=4, ticks_per_beat=4
-*track.melody: instrument = 73, volume=120, octave=5
-*track.chord: instrument =40, volume=50,octave=3
-*track.bass: instrument=19, volume=100, octave=2
+*song:      tempo_bpm=200, beats_per_bar=4, ticks_per_beat=4
+
+*track.melody: instrument=73, volume=120, octave=5
+*track.chord:  instrument=40, volume= 50, octave=3
+*track.bass:   instrument=19, volume=100, octave=2
 
 [C] c c d e | [C] c e [G7] d g | [C] Vc c d e | [C] c2 [G7] b |
 [C] c c d e | [F] f e d c | [G7] b g a b | [C] c2 c1 [] r1 |
