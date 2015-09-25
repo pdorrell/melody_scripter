@@ -723,14 +723,14 @@ class SetSongTempoBpm(ValueSetter):
     
 class SetSongBeatsPerBar(ValueSetter):
     key = 'beats_per_bar', 
-    value_parser = IntValueParser(0, 32)
+    value_parser = IntValueParser(1, 32)
     
     def resolve(self, song):
         song.unplayed().set_beats_per_bar(self.value)
     
 class SetSongTicksPerBeat(ValueSetter):
     key = 'ticks_per_beat'
-    value_parser = IntValueParser(0, 2000)
+    value_parser = IntValueParser(1, 2000)
     
     def resolve(self, song):
         song.unplayed().set_ticks_per_beat(self.value)
