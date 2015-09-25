@@ -69,8 +69,6 @@ class StringToParse(object):
             yield LineToParse(self, line_number, line).as_region()
 
                 
-WHITESPACE_REGEX = regex.compile('\s*')
-
 class LineToParse(object):
     def __init__(self, file_to_parse, line_number, line):
         self.file_to_parse = file_to_parse
@@ -770,7 +768,7 @@ class SetTrackVolume(ValueSetter):
 
 class SetTrackOctave(ValueSetter):
     key = 'octave'
-    value_parser = IntValueParser(0, 9)
+    value_parser = IntValueParser(-1, 10)
     
     def resolve(self, track):
         track.unplayed().octave = self.value
