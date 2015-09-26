@@ -6,12 +6,18 @@ Melody Scripter
 **Melody Scripter** is a Python application which parses melody files written
 in an easy-to-write textual format into an internal Python object model.
 
+Here is "Yankee Doodle" in **Melody Scripter** format:
+
+.. include:: data/songs/yankee_doodle.song
+   :literal:
+
 For the purposes of **Melody Scripter**, a "melody" consists of a sequence
 of notes on the standard Western musical scale, together with bar lines
 (which must match the specified time signature) and chords, with optional
 bass notes where different from the chord root note.
 
-The internal object model can generate a Midi file for the melody.
+The internal object model can generate a Midi file for the melody, for example: 
+`yankee_doodle.song.mid <https://raw.githubusercontent.com/pdorrell/melody_scripter/master/data/songs/yankee_doodle.song.mid>`_.
 
 Currently Midi output is the only functionality provided by the object model,
 but the object model also provides a convenient representation of melody information
