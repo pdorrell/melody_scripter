@@ -737,13 +737,21 @@ class SetSongTicksPerBeat(ValueSetter):
     def resolve(self, song):
         song.unplayed().set_ticks_per_beat(self.value)
     
+class SetSongSubTicksPerTick(ValueSetter):
+    key = 'subticks_per_tick'
+    value_parser = IntValueParser(1, 100)
+    
+    def resolve(self, song):
+        song.unplayed().set_subticks_per_tick(self.value)
+    
 class SongValuesCommand(ValuesCommand):
     
     description = 'song'
 
     value_setters = dict(tempo_bpm = SetSongTempoBpm, 
                          beats_per_bar = SetSongBeatsPerBar, 
-                         ticks_per_beat = SetSongTicksPerBeat)
+                         ticks_per_beat = SetSongTicksPerBeat, 
+                         subticks_per_tick = SetSongSubTicksPerTick)
     
     parse_regex = regex.compile(r'song:\s*(\s*(?P<item>[^,]+)\s*[,]?)*')
 
@@ -859,6 +867,7 @@ class Song(Parseable):
         
         self.beats_per_bar = 4
         self.ticks_per_beat = 4
+        self.subticks_per_tick = 1
         self.recalculate_tick_values()
         self.playing = False # some command can only happen before it starts playing
         self.tempo_bpm = 120
@@ -889,6 +898,9 @@ class Song(Parseable):
     def set_ticks_per_beat(self, ticks_per_beat):
         self.ticks_per_beat = ticks_per_beat
         self.recalculate_tick_values()
+        
+    def set_subticks_per_tick(self, subticks_per_tick):
+        self.subticks_per_tick = subticks_per_tick
         
     def recalculate_tick_values(self):
         self.ticks_per_bar = self.beats_per_bar * self.ticks_per_beat

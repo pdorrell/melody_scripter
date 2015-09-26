@@ -5,7 +5,8 @@ import regex
 from melody_scripter import song_parser
 from melody_scripter.song_parser import FileToParse, LineToParse, LineRegionToParse, ParseException, StringToParse
 from melody_scripter.song_parser import Note, Rest, BarLine, Chord, SongItem, ScaleNote, SongItems, scale_note, Tie
-from melody_scripter.song_parser import SongValuesCommand, SetSongTempoBpm, SetSongBeatsPerBar, SetSongTicksPerBeat
+from melody_scripter.song_parser import SongValuesCommand, SetSongTempoBpm, SetSongBeatsPerBar
+from melody_scripter.song_parser import SetSongTicksPerBeat, SetSongSubTicksPerTick
 from melody_scripter.song_parser import TrackValuesCommand, SetTrackInstrument, SetTrackVolume, SetTrackOctave
 from melody_scripter.song_parser import SongCommand, Song, find_next_note
 
@@ -342,12 +343,13 @@ class TestCommandParser(ParserTestCase):
             SongValuesCommand.parse_value_setting(as_region('tempo_bpm = 23000'))
         
     def test_song_values_command(self):
-        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ticks_per_beat = 12')
+        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ticks_per_beat = 12, subticks_per_tick = 5')
         
         values_command = SongValuesCommand.parse(command_region)
         self.assertEquals(values_command.source, command_region)
         self.assertEquals(values_command, 
-                          SongValuesCommand([SetSongTempoBpm(80), SetSongBeatsPerBar(4), SetSongTicksPerBeat(12)]))
+                          SongValuesCommand([SetSongTempoBpm(80), SetSongBeatsPerBar(4), 
+                                             SetSongTicksPerBeat(12), SetSongSubTicksPerTick(5)]))
 
     def test_track_values_command(self):
         command_region = as_region('track.melody: instrument = 73, volume=100, octave=3')
@@ -426,6 +428,27 @@ class TestSongParser(ParserTestCase):
                                           BarLine(), 
                                           Chord(ScaleNote(4), descriptor = ''), 
                                           Rest((2, 1))]))
+        
+    def test_subticks(self):
+        song_lines = """
+            *song:         tempo_bpm=120, ticks_per_beat=4, subticks_per_tick = 5
+                 | [C] c 
+"""
+        parse_string = StringToParse('test_string', song_lines)
+        song = Song.parse(parse_string)
+        self.assertEqualsDisplaying(song, 
+                                    Song([SongValuesCommand([SetSongTempoBpm(120), 
+                                                             SetSongTicksPerBeat(4), 
+                                                             SetSongSubTicksPerTick(5)]), 
+                                          BarLine(), 
+                                          Chord(ScaleNote(0), descriptor = ''), 
+                                          Note(0, duration = (1, 1))
+                                          ]))
+                                          
+                                          
+                                                            
+
+        
     
     def _continuation_song(self, string):
         song_lines = "*song: ticks_per_beat=1, beats_per_bar = 4\n%s" % string
