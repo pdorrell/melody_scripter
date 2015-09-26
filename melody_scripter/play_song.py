@@ -16,7 +16,6 @@ class MidiTrack(object):
         self.id = "%s/%s" % (track_number, channel_number)
         self.name = name
         self.volume = track.volume
-        self.tick_length = midi_song.tick_length
         self.midi_data = midi_song.midi_data
         self.midi_data_track = midi.Track()
         self.midi_data.append(self.midi_data_track)
@@ -64,11 +63,9 @@ class MidiSong(object):
     def __init__(self, song, initial_delay_seconds = 0):
 
         self.song = song
-        self.tick_length = 1.0 / song.ticks_per_beat
         self.tempo_bpm = song.tempo_bpm
         self.midi_tracks = {}
         self.initial_delay_ticks = int(round(initial_delay_seconds * song.ticks_per_second))
-        print("self.initial_delay_ticks = %r" % self.initial_delay_ticks)
 
     def render(self):
         self.midi_data = midi.Pattern(resolution = self.song.ticks_per_beat)
