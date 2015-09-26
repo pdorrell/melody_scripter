@@ -41,3 +41,5 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# .wav files generated from .mid files
+*.mid.wav
