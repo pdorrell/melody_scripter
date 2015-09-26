@@ -396,7 +396,7 @@ def resolve_duration(note_or_rest, song):
     x, y = note_or_rest.duration
     if song.ticks_per_beat % y != 0:
         raise ParseException('Duration %d/%d is not compatible with ticks per beat of %d' %
-                             (x, y, song.ticks_per_beat))
+                             (x, y, song.ticks_per_beat), note_or_rest.source)
     note_or_rest.duration_ticks = x * (song.ticks_per_beat/y)
     song.tick += note_or_rest.duration_ticks
     
