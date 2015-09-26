@@ -26,12 +26,7 @@ bass notes where different from the chord root note.
 
 The Song object model can generate a Midi file for the melody, for example: 
 `yankee_doodle.song.mid <https://raw.githubusercontent.com/pdorrell/melody_scripter/master/data/songs/yankee_doodle.song.mid>`_.
-
-.. raw:: html
-
-  <iframe width="300" height="200" scrolling="no" frameborder="no" 
-          src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/225607810&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true">
-  </iframe>
+You can listen to an audio version (rendered using **fluidsynth**) at http://whatismusic.info/melody_scripter/.
 
 Currently Midi output is the only functionality provided by the Song object model,
 but the object model also provides a convenient representation of melody information

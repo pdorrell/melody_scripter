@@ -43,3 +43,6 @@ docs/_build/
 
 # .wav files generated from .mid files
 *.mid.wav
+
+# .mp3 files
+*.mp3
