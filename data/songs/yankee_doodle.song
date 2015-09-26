@@ -4,7 +4,7 @@
 *track.chord:  instrument=40, volume= 50, octave=3
 *track.bass:   instrument=19, volume=100, octave=2
 
-[C] c c d e | [C] c e [G7] d g | [C] Vc c d e | [C] c2 [G7] b |
+[C] c c d e | [C] c e [G7] d Vg | [C] c c d e | [C] c2 [G7] b |
 [C] c c d e | [F] f e d c | [G7] b g a b | [C] c2 c1 [] r1 |
 [F] a. bh a1 g | [F] a b c2 | [C] g. ah g1 f | [C] e2 g2 |
-[F] a. bh a1 g | [F] a b c a | [G7] g c b d | [C] c2 c1
+[F] a. bh a1 g | [F] a b c a | [G7] g c b d | [C] c2 c1 r1
