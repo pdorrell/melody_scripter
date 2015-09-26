@@ -243,6 +243,10 @@ class ScaleNote(Parseable):
         self.upper_case = upper_case
         self.semitone_offset = DIATONIC_OFFSETS[self.note] + self.sharps
         
+    def set_sharps(self, sharps = 0):
+        self.sharps = sharps
+        self.semitone_offset = DIATONIC_OFFSETS[self.note] + self.sharps
+        
     parse_with_octave_regex = regex.compile('^(?P<letter>[a-g])(?P<sharp_or_flat>[+-]?)(?P<octave>[0-9])?$')
         
     @classmethod
@@ -361,7 +365,7 @@ class Chord(Parseable):
         notes = []
         for char in chord_notes_string:
             if char in ['-', '+']:
-                notes[-1].sharps = 1 if char == '+' else -1
+                notes[-1].set_sharps(1 if char == '+' else -1)
             else:
                 notes.append(ScaleNote(scale_number_from_letter(char)))
         return notes

@@ -224,6 +224,27 @@ class TestChord(ParserTestCase):
         parsed_chord.resolve(Song())
         self.assertEquals(parsed_chord.bass_midi_note, 12)
         
+    def test_chord_descriptor_midi_notes(self):
+        region = as_region('[B]')
+        parsed_chord = Chord.parse(region)
+        parsed_chord.resolve(Song())
+        self.assertEquals(parsed_chord.midi_notes, [35, 39, 42])
+
+        region = as_region('[B-]')
+        parsed_chord = Chord.parse(region)
+        parsed_chord.resolve(Song())
+        self.assertEquals(parsed_chord.midi_notes, [34, 38, 41])
+        
+    def test_chord_notes_midi_notes(self):
+        region = as_region('[:CEG]')
+        parsed_chord = Chord.parse(region)
+        parsed_chord.resolve(Song())
+        self.assertEquals(parsed_chord.midi_notes, [24, 28, 31])
+        region = as_region('[:C+EG+]')
+        parsed_chord = Chord.parse(region)
+        parsed_chord.resolve(Song())
+        self.assertEquals(parsed_chord.midi_notes, [25, 28, 32])
+        
 
 class TestSongItemParser(ParserTestCase):
     
