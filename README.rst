@@ -6,10 +6,18 @@ Melody Scripter
 **Melody Scripter** is a Python application which parses melody files written
 in an easy-to-write textual format into an internal Python object model.
 
-Here is "Yankee Doodle" in **Melody Scripter** format:
+Here is "Yankee Doodle" in **Melody Scripter** format::
 
-.. include:: data/songs/yankee_doodle.song
-   :literal:
+  *song:      tempo_bpm=200, beats_per_bar=4, ticks_per_beat=4
+  
+  *track.melody: instrument=73, volume=120, octave=5
+  *track.chord:  instrument=40, volume= 50, octave=3
+  *track.bass:   instrument=19, volume=100, octave=2
+  
+  [C] c c d e | [C] c e [G7] d Vg | [C] c c d e | [C] c2 [G7] b |
+  [C] c c d e | [F] f e d c | [G7] b g a b | [C] c2 c1 [] r1 |
+  [F] a. bh a1 g | [F] a b c2 | [C] g. ah g1 f | [C] e2 g2 |
+  [F] a. bh a1 g | [F] a b c a | [G7] g c b d | [C] c2 c1 r1
 
 For the purposes of **Melody Scripter**, a "melody" consists of a sequence
 of notes on the standard Western musical scale, together with bar lines
