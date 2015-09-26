@@ -9,6 +9,7 @@ from melody_scripter.song_parser import SongValuesCommand, SetSongTempoBpm, SetS
 from melody_scripter.song_parser import SetSongTicksPerBeat, SetSongSubTicksPerTick
 from melody_scripter.song_parser import TrackValuesCommand, SetTrackInstrument, SetTrackVolume, SetTrackOctave
 from melody_scripter.song_parser import SongCommand, Song, find_next_note
+from melody_scripter.song_parser import Groove
 
 from contextlib import contextmanager
 
@@ -374,6 +375,19 @@ class TestCommandParser(ParserTestCase):
                           TrackValuesCommand('melody', 
                                              [SetTrackInstrument(73), SetTrackVolume(100), SetTrackOctave(3)]))
         
+class TestGroove(ParserTestCase):
+    
+    def test_groove(self):
+        groove = Groove(beats_per_bar = 3, ticks_per_beat = 2, subticks_per_tick = 10,
+                        delays = [0, 3])
+        self.assertEquals(groove.get_subticks(tick = 0), 0)
+        self.assertEquals(groove.get_subticks(tick = 1), 13)
+        self.assertEquals(groove.get_subticks(tick = 2), 20)
+        self.assertEquals(groove.get_subticks(tick = 20), 200)
+        self.assertEquals(groove.get_subticks(tick = 23), 233)
+        
+        
+        
 class TestSongParser(ParserTestCase):
     
     song_lines = """
@@ -444,11 +458,6 @@ class TestSongParser(ParserTestCase):
                                           Chord(ScaleNote(0), descriptor = ''), 
                                           Note(0, duration = (1, 1))
                                           ]))
-                                          
-                                          
-                                                            
-
-        
     
     def _continuation_song(self, string):
         song_lines = "*song: ticks_per_beat=1, beats_per_bar = 4\n%s" % string

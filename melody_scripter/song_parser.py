@@ -839,6 +839,22 @@ class SongCommand(NamedCommand):
     commands = dict(song = SongValuesCommand, 
                     track = TrackValuesCommand)
     
+class Groove(Parseable):
+    
+    def __init__(self, beats_per_bar, ticks_per_beat, subticks_per_tick, delays):
+        self.beats_per_bar = beats_per_bar
+        self.ticks_per_beat = ticks_per_beat
+        self.subticks_per_tick = subticks_per_tick
+        self.delays = delays
+        self.num_delays = len(self.delays)
+        self.ticks_per_bar = beats_per_bar * ticks_per_beat
+        if self.ticks_per_bar % self.num_delays != 0:
+            raise ParseException('%d delays (%r) given for groove, but %d ticks per bar is not a multiple of %d' %
+                                 (self.num_delays, self.delays, self.ticks_per_bar, self.num_delays))
+    
+    def get_subticks(self, tick):
+        return tick * self.subticks_per_tick + self.delays[tick % self.num_delays]
+    
 class Track(object):
     
     def __init__(self, song, octave = 3):
