@@ -154,10 +154,10 @@ Sharp or flat:
   Represented by "+" or "-", and only one is allowed.
 Duration:
   The note duration is specified as a number of beats, with optional qualifiers.
-  The default number of beats is either 1, for the first note in the song and the first note
+  The default number of beats is 1, for the first note in the song and the first note
   in each bar. Possible qualifiers are "h" and "q", which can both occur zero or
-  more times, and which represent a halfing and quartering of length in each case,
-  "t", (for triplet), which divides the note length by three, and "." which multiples
+  more times, and which represent a halfing and quartering of length in each case;
+  "t", (for triplet), which divides the note length by three; and "." which multiples
   the note length by 1.5. "t" and "." can only occur once. Any note duration must
   be a whole number of ticks, and an error will occur if a note length is defined
   which is a fractional number of ticks. (In such a case, if the note length is
@@ -168,8 +168,8 @@ To-be-continued marker:
   by the next note.
 
 Except for the very first note, Melody Scripter does not provide for each note to
-specify its octave. Instead, pitch values are specified relatively to the previous note.
-If no "ups" or "downs" markers are specified, the rule is to always choose the closest
+specify its octave. Instead, pitch values are specified relative to the previous note.
+If no "up" or "down" markers are specified, the rule is to always choose the closest
 possibility. If this choice is ambiguous, eg when going from 'f' to 'b' or vice versa, then an error occurs.
 
 If one up or one down is specified, then the next note should be the first note matching
@@ -189,7 +189,7 @@ A **continuation** is where one note is represented by the joining of two or mor
 note items in the melody script. Because bar lines have to occur in the right place,
 notes that cross bar lines *have* to be represented using continuations. There may
 also be some note lengths that cannot be represented using the Duration format
-specified above, so they have to be constructed from multiple notes.
+specified above, so they have to be constructed from multiple notes joined together.
 
 In other situations, the use of continuations is optional.
 
@@ -227,14 +227,14 @@ Root note plus other chord notes.
 
 In each case, chords may contain an optional bass note specifier, to specify a bass note
 different from the root note. This is given as a "/" character, followed by an upper-case
-letter and optional sharp or flat. So, for example, "[:A+m/F+]" represents A sharp minor
+letter and optional sharp or flat. So, for example, "[A+m/F+]" represents A sharp minor
 with an F sharp bass.
 
 Bar Lines
 ---------
 
 **Bar Lines** are represented by "|". Bar lines are used to check that the total lengths of notes
-and rests in each bar have the correct values. They also effectively reset the default note
+and rests in each bar have the correct values. They also reset the default note
 duration to 1 beat. Bar lines do not have any direct effect on Midi output.
 
 Cuts
@@ -242,7 +242,7 @@ Cuts
 
 A **Cut** is represented by "!". **Cut** means "cut out all previous song items". A Cut
 is useful when editing, when you want to play part of the song without starting all the way from the beginning.
-(There would not normally be any reason to include it in a completed song.)
+(There would not normally be any reason to include a Cut in a completed song.)
 
 
 Playback
