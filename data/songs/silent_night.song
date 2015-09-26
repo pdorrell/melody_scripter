@@ -1,4 +1,4 @@
-*song:      tempo_bpm=120, beats_per_bar=3, ticks_per_beat=4
+*song:      tempo_bpm=120, beats_per_bar=3, ticks_per_beat=2
 
 *track.melody: instrument=73, volume=120, octave=4
 *track.chord:  instrument=40, volume= 50, octave=3
