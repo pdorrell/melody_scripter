@@ -48,13 +48,13 @@ Command Lines
 A command line starts with a **command** (after the initial '*' character).
 
 The command is followed by a ':' character, and then one or more
-comma separated arguments.
+comma-separated arguments.
 
 Currently there are four commands, which are **song**, and three 'track' commands:
 **track.melody**, **track.chord** and **track.bass**.
 
 All four commands take arguments which are **property settings**, consisting 
-in each case of a **key** and a **value**.
+in each case of a **key** and a **value**, specified as *key* = *value*.
 
 Currently all property settings can be executed only prior to any song items,
 but in future they may be allowed during the song (or additional commands may
@@ -81,7 +81,7 @@ or rest length must be a whole number of ticks |--| if not, an error occurs.
 
 The **beats_per_bar** value defines the required length of each complete bar. It has no effect on Midi
 output, but if the contents of a bar do not have the correct total length, it's an error.
-(It's OK to have partial bars at the start of end of the song.)
+(It's OK to have partial bars at the start and end of the song.)
 
 
 Track Property Settings
@@ -105,9 +105,9 @@ Each track has its own settings:
 (The octave defaults are for **melody**, **chord** and **bass** respectively.)
 
 The **instrument** and **volume** settings define the Midi settings for each track. Midi instrument numbers
-range from 0 to 127, and the actual sounds depend entirely on the SoundFont used to play the Midi song,
+range from 0 to 127, and the actual sounds depend on the SoundFont used to play the Midi song,
 although there is a standard **GM** set of Midi instruments definitions (where the default of **0** 
-corresponds to a Acoustic Grand Piano).
+corresponds to Acoustic Grand Piano).
 
 Currently Melody Scripter does not have any provision for per-note volume (velocity) specification. In
 practice there is no easy way to determine appropriate volume values, for example when typing in from
@@ -126,12 +126,12 @@ Song Items
 
 There are six types of song item that can be parsed:
 
-* Notes
-* Ties
-* Rests
-* Chords
-* Bar Lines
-* A Cut
+* Note
+* Tie
+* Rest
+* Chord
+* Bar Line
+* Cut
 
 All song items are represented by tokens that don't contain any whitespace, and song items in a line must
 be separated from each other by whitespace.
@@ -154,9 +154,9 @@ Sharp or flat:
   Represented by "+" or "-", and only one is allowed.
 Duration:
   The note duration is specified as a number of beats, with optional qualifiers.
-  The default number of beats is either 1, for the first note, and the first note
+  The default number of beats is either 1, for the first note in the song and the first note
   in each bar. Possible qualifiers are "h" and "q", which can both occur zero or
-  more times, and representing a halfing and quartering of length in each case,
+  more times, and which represent a halfing and quartering of length in each case,
   "t", (for triplet), which divides the note length by three, and "." which multiples
   the note length by 1.5. "t" and "." can only occur once. Any note duration must
   be a whole number of ticks, and an error will occur if a note length is defined
@@ -170,11 +170,12 @@ To-be-continued marker:
 Except for the very first note, Melody Scripter does not provide for each note to
 specify its octave. Instead, pitch values are specified relatively to the previous note.
 If no "ups" or "downs" markers are specified, the rule is to always choose the closest
-possibility. If this choice is ambiguous, ie when going from 'f' to 'b', then an error occurs.
+possibility. If this choice is ambiguous, eg when going from 'f' to 'b' or vice versa, then an error occurs.
 
-If one up or one down is specified, then the next note should be the first note above
+If one up or one down is specified, then the next note should be the first note matching
+the given note letter, above
 or below the previous note, respectively. If more than one up or down marker is given, 
-the go an extra octave up or down for each extra marker.
+then go an extra octave up or down for each extra marker.
 
 So, for example, "c" followed by "e" means go up to the next "e", and "c" followed
 by "^e" *also* means go up to the next "e". Whereas "^^e" means go up 9 notes to the "e"
@@ -197,8 +198,8 @@ There are two ways to specify that one note is to be continued by a second note:
 * Either, the first note ends with "~" and the second note starts with "~",
 * Or, a "~" **Tie** item occurs between the two notes.
 
-It is entirely possible for more than two notes to form a continuation |--| the
-required joinings just need to be indicated in each case. This would be necessary,
+It is possible for more than two notes to form a continuation |--| the
+required joinings need to be indicated in each case. This would be necessary,
 for example, to specify a note that filled more than two bars.
 
 Rests
@@ -239,8 +240,9 @@ duration to 1 beat. Bar lines do not have any direct effect on Midi output.
 Cuts
 ----
 
-A **Cut** is represented by "!". **Cut** means "cut out all previous song items". This song item
-is very useful when you want to play part of the song without starting all the way from the beginning.
+A **Cut** is represented by "!". **Cut** means "cut out all previous song items". A Cut
+is useful when editing, when you want to play part of the song without starting all the way from the beginning.
+(There would not normally be any reason to include it in a completed song.)
 
 
 Playback
