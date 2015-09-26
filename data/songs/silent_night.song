@@ -4,9 +4,9 @@
 *track.chord:  instrument=40, volume= 50, octave=3
 *track.bass:   instrument=19, volume=100, octave=2
 
-| [F] c. dh c1 | a3 | c. dh c1 | a3
-| [C] ^g2 g1 | e3 | [F] f2 f1 | c3
-| [B-] d2 d1 | f. eh d1 | [F] c. dh c1 | a3
-| [B-] d2 d1 | f. eh d1 | [F] c. dh c1 | a3
-| [C] ^g2 g1 | b-. gh e1 | [F] f3 | a3 
-| f c a | [C] c. b-h g1 | [F] f3
+| [F] c. dh c1 | a2 r1 | [F] c. dh c1 | a2 r1 
+| [C] ^g2 g1 | e2 r1 | [F] f2 f1 | c2 r1
+| [B-] d2 d1 | f. eh d1 | [F] c. dh c1 | a2 r1
+| [B-] d2 d1 | f. eh d1 | [F] c. dh c1 | a2 r1
+| [C] ^g2 g1 | b-. gh e1 | [F] f3 | a2 r1
+| f c a | [C] c. b-h g1 | [F] f2
