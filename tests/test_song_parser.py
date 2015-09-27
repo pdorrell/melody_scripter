@@ -387,7 +387,6 @@ class TestGroove(ParserTestCase):
         self.assertEquals(groove.get_subticks(tick = 23), 233)
         
         
-        
 class TestSongParser(ParserTestCase):
     
     song_lines = """

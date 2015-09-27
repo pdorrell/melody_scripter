@@ -20,8 +20,9 @@ class MidiTrack(object):
         self.midi_data_track = midi.Track()
         self.midi_data.append(self.midi_data_track)
         self.set_tempo_bpm(0, self.song.tempo_bpm)
+        self.groove = self.song.groove
         self.set_instrument(0, self.track.instrument)
-        self.initial_delay_ticks = midi_song.initial_delay_ticks
+        self.initial_delay_subticks = midi_song.initial_delay_subticks
             
     def set_tempo_bpm(self, time, tempo):
         print(" %s setting tempo at %s to %s bpm" % (self.id, time, tempo))
@@ -29,20 +30,20 @@ class MidiTrack(object):
         
     def add_note(self, midi_note, time, duration):
         print(" %s playing note %s at time %s, %s ticks" % (self.id, midi_note, time, duration))
-        start_time = time + self.initial_delay_ticks
+        start_time = self.groove.get_subticks(time) + self.initial_delay_subticks
         self.midi_data_track.append(midi.NoteOnEvent(tick = start_time, channel = self.channel_number, 
                                                      pitch = midi_note, velocity = self.volume))
-        end_time = start_time + duration
+        end_time = self.groove.get_subticks(time+duration) + self.initial_delay_subticks
         self.midi_data_track.append(midi.NoteOffEvent(tick = end_time, channel = self.channel_number, 
                                                       pitch = midi_note))
         
     def add_notes(self, midi_notes, time, duration):
         print(" %s playing notes %r at time %s, %s ticks" % (self.id, midi_notes, time, duration))
-        start_time = time + self.initial_delay_ticks
+        start_time = self.groove.get_subticks(time) + self.initial_delay_subticks
         for midi_note in midi_notes:
             self.midi_data_track.append(midi.NoteOnEvent(tick = start_time, channel = self.channel_number, 
                                                          pitch = midi_note, velocity = self.volume))
-        end_time = start_time + duration
+        end_time = self.groove.get_subticks(time+duration) + self.initial_delay_subticks
         for midi_note in midi_notes:
             self.midi_data_track.append(midi.NoteOffEvent(tick = end_time, channel = self.channel_number, 
                                                           pitch = midi_note))
@@ -64,11 +65,12 @@ class MidiSong(object):
 
         self.song = song
         self.tempo_bpm = song.tempo_bpm
+        self.groove = song.groove
         self.midi_tracks = {}
-        self.initial_delay_ticks = int(round(initial_delay_seconds * song.ticks_per_second))
+        self.initial_delay_subticks = int(round(initial_delay_seconds * song.subticks_per_second))
 
     def render(self):
-        self.midi_data = midi.Pattern(resolution = self.song.ticks_per_beat)
+        self.midi_data = midi.Pattern(resolution = self.song.ticks_per_beat * self.song.subticks_per_tick)
         
         for name, track in self.song.tracks.items():
             midi_track = self.add_midi_track(name, name, track)

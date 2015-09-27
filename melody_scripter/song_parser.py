@@ -813,6 +813,37 @@ class TrackValuesCommand(ValuesCommand):
             raise ParseException('Unknown track: %r' % self.name)
         for value in self.values:
             value.resolve(track)
+            
+class GrooveCommand(Parseable):
+    
+    delays_regex = regex.compile(r'groove:\s*((?P<delay>[-+]?[0-9]+)\s*)+')
+    
+    def __init__(self, delays):
+        self.delays = delays
+        
+    @classmethod
+    def parse_delay(cls, region):
+        try:
+            delay = int(region.value)
+            return delay
+        except ValueError:
+            raise ParseException('Invalid groove delay: %r' % region.value, region)
+        
+    def resolve(self, song):
+        song.groove_delays = self.delays
+        song.set_groove()
+        
+    @classmethod
+    def parse(cls, region):
+        match = region.match(cls.delays_regex)
+        if match:
+            delay_group_index = cls.delays_regex.groupindex['delay']
+            delay_capture_spans = match.spans(delay_group_index)
+            delay_regions = [region.sub_region(span) for span in delay_capture_spans]
+            delays = [cls.parse_delay(delay_region) for delay_region in delay_regions]
+            return GrooveCommand(delays)
+        else:
+            raise ParseException('Invalid delays', region)
 
 class NamedCommand(object):
     @classmethod
@@ -837,6 +868,7 @@ class SongCommand(NamedCommand):
     description = 'song command'
     
     commands = dict(song = SongValuesCommand, 
+                    groove = GrooveCommand, 
                     track = TrackValuesCommand)
     
 class Groove(Parseable):
@@ -851,6 +883,12 @@ class Groove(Parseable):
         if self.ticks_per_bar % self.num_delays != 0:
             raise ParseException('%d delays (%r) given for groove, but %d ticks per bar is not a multiple of %d' %
                                  (self.num_delays, self.delays, self.ticks_per_bar, self.num_delays))
+        
+    def as_data(self):
+        return dict(beats_per_bar = self.beats_per_bar, 
+                    ticks_per_beat = self.ticks_per_beat, 
+                    subticks_per_tick = self.subticks_per_tick, 
+                    delays = self.delays)
     
     def get_subticks(self, tick):
         return tick * self.subticks_per_tick + self.delays[tick % self.num_delays]
@@ -884,12 +922,17 @@ class Song(Parseable):
         self.beats_per_bar = 4
         self.ticks_per_beat = 4
         self.subticks_per_tick = 1
+        self.groove_delays = [0]
         self.recalculate_tick_values()
         self.playing = False # some command can only happen before it starts playing
         self.tempo_bpm = 120
         self.set_to_start()
         self.tracks = dict(melody = Track(self, octave = 3), chord = Track(self, octave = 1), 
                            bass = Track(self, octave = 0))
+        
+    def set_groove(self):
+        self.groove = Groove(self.beats_per_bar, self.ticks_per_beat, self.subticks_per_tick, 
+                             self.groove_delays)
         
     def clear_items(self):
         self.items = [item for item in self.items if not item.cuttable]
@@ -907,9 +950,9 @@ class Song(Parseable):
         self.awaiting_tie = False
         
     @property
-    def ticks_per_second(self):
-        ticks_per_minute = self.tempo_bpm * self.ticks_per_beat
-        return ticks_per_minute/60.0
+    def subticks_per_second(self):
+        subticks_per_minute = self.tempo_bpm * self.ticks_per_beat * self.subticks_per_tick
+        return subticks_per_minute/60.0
         
     def set_ticks_per_beat(self, ticks_per_beat):
         self.ticks_per_beat = ticks_per_beat
@@ -917,9 +960,15 @@ class Song(Parseable):
         
     def set_subticks_per_tick(self, subticks_per_tick):
         self.subticks_per_tick = subticks_per_tick
+        self.recalculate_tick_values()
+        
+    def set_groove_delays(self, delays):
+        self.groove_delays = delays
+        self.set_groove()
         
     def recalculate_tick_values(self):
         self.ticks_per_bar = self.beats_per_bar * self.ticks_per_beat
+        self.set_groove()
         
     def set_beats_per_bar(self, beats_per_bar):
         self.beats_per_bar = beats_per_bar
