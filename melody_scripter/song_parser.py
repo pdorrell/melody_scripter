@@ -142,6 +142,8 @@ class Parseable(object):
     
     def __repr__(self):
         return "%s:%r" %  (self.__class__.__name__, self.as_data())
+    
+class ParseableFromRegex(Parseable):
 
     @classmethod
     def parse(cls, region):
@@ -157,7 +159,7 @@ class Parseable(object):
         parsed_instance.source = region
         return parsed_instance
 
-class Cut(Parseable):
+class Cut(ParseableFromRegex):
     description = 'cut'
     parse_regex = regex.compile(r'[!]')
 
@@ -168,7 +170,7 @@ class Cut(Parseable):
     def unparse(self):
         return '!'
     
-class Tie(Parseable):
+class Tie(ParseableFromRegex):
     description = 'tie'
     parse_regex = regex.compile(r'[~]')
 
@@ -195,7 +197,7 @@ class Tie(Parseable):
             raise ParseException('Tie appears, but there is no previous note', self.source)
         song.awaiting_tie = True
 
-class BarLine(Parseable):
+class BarLine(ParseableFromRegex):
 
     description = 'bar line'
     parse_regex = regex.compile(r'[|]')
@@ -230,7 +232,7 @@ class BarLine(Parseable):
 def scale_note(string):
     return ScaleNote.parse_with_octave(string)
     
-class ScaleNote(Parseable):
+class ScaleNote(ParseableFromRegex):
     def __init__(self, note, sharps = 0, upper_case = True):
         self.note = note
         self.sharps = sharps
@@ -280,7 +282,7 @@ class ScaleNote(Parseable):
         sharps_string = "+" * self.sharps if self.sharps > 0 else "-" * -self.sharps
         return letter_string + sharps_string
     
-class Chord(Parseable):
+class Chord(ParseableFromRegex):
     
     cuttable = True
     
@@ -394,7 +396,7 @@ def resolve_duration(note_or_rest, song):
     note_or_rest.duration_ticks = x * (song.ticks_per_beat/y)
     song.tick += note_or_rest.duration_ticks
     
-class Rest(Parseable):
+class Rest(ParseableFromRegex):
     def __init__(self, duration):
         self.duration = duration
         self.cuttable = True
@@ -438,7 +440,7 @@ class BassNote(object):
     def visit_midi_track(self, midi_track):
         midi_track.add_note(self.midi_note, self.tick, self.duration_ticks)
 
-class Note(Parseable):
+class Note(ParseableFromRegex):
     
     cuttable = True
     
@@ -657,7 +659,7 @@ class IntValueParser(object):
             self.raise_invalid_value_exception(label, value, value_region)
         return value
 
-class ValueSetter(Parseable):
+class ValueSetter(ParseableFromRegex):
     
     def __init__(self, value):
         self.value = value
@@ -671,7 +673,7 @@ class ValueSetter(Parseable):
         value_setter = cls(value)
         return value_setter
     
-class ValuesCommand(Parseable):
+class ValuesCommand(ParseableFromRegex):
     
     VALUE_SETTING_REGEX = regex.compile(r'((?P<key>[^=\s]+)\s*=\s*(?P<value>.*))')
     
@@ -808,7 +810,7 @@ class TrackValuesCommand(ValuesCommand):
         for value in self.values:
             value.resolve(track)
             
-class GrooveCommand(Parseable):
+class GrooveCommand(ParseableFromRegex):
     
     delays_regex = regex.compile(r'groove:\s*((?P<delay>[-+]?[0-9]+)\s*)+')
     
@@ -865,7 +867,7 @@ class SongCommand(NamedCommand):
                     groove = GrooveCommand, 
                     track = TrackValuesCommand)
     
-class Groove(Parseable):
+class Groove(ParseableFromRegex):
     
     def __init__(self, beats_per_bar, ticks_per_beat, subticks_per_tick, delays):
         self.beats_per_bar = beats_per_bar
