@@ -30,12 +30,9 @@ def valid_midi_note(midi_note):
     return midi_note
 
 class ParseException(Exception):
-    def __init__(self, message, location, location_pos = False):
+    def __init__(self, message, location):
         super(Exception, self).__init__(message)
-        if location_pos:
-            self.location = location.remaining()
-        else:
-            self.location = location
+        self.location = location
         
     def show_error(self):
         self.location.show_error(self.message)
@@ -95,17 +92,16 @@ class LineRegionToParse(object):
         self.start = start
         self.end = end
         self.value = value
-        self.pos = self.start
         self.regex = regex
         self.matched = match
         self.matched_groupdict = match.groupdict() if match else None
         
-    def parse(self, regex, completely = False):
-        match = regex.match(self.line_to_parse.line, self.pos, self.end)
+    def parse(self, regex):
+        match = regex.match(self.line_to_parse.line, self.start, self.end)
         if match:
-            self.pos = match.end()
-            if completely and self.pos < self.end:
-                raise ParseLeftOverException(self.line_to_parse.line[self.pos:self.end])
+            match_end = match.end()
+            if match_end < self.end:
+                raise ParseLeftOverException(self.sub_region((match_end, self.end)))
             return LineRegionToParse(self.line_to_parse, match.start(), match.end(), match.group(), regex, match)
         else:
             return None
@@ -118,12 +114,9 @@ class LineRegionToParse(object):
         return LineRegionToParse(self.line_to_parse, start, end, self.line_to_parse.line[start:end])
         
     def match(self, regex):
-        match = regex.match(self.line_to_parse.line, self.pos, self.end)
+        match = regex.match(self.line_to_parse.line, self.start, self.end)
         return match
     
-    def remaining(self):
-        return LineRegionToParse(self.line_to_parse, self.pos, self.end, self.line_to_parse.line[self.pos:self.end])
-        
     def named_group(self, name):
         if self.match and self.matched_groupdict[name] is not None:
             group_index = self.regex.groupindex[name]
@@ -151,11 +144,11 @@ class Parseable(object):
     @classmethod
     def parse(cls, region):
         try:
-            parsed = region.parse(cls.parse_regex, completely = True)
+            parsed = region.parse(cls.parse_regex)
         except ParseLeftOverException, pleo:
             raise ParseException('Invalid %s: %r (extra data %r)' 
-                                 % (cls.description, region.value, pleo.leftover), 
-                                 region, location_pos = True)
+                                 % (cls.description, region.value, pleo.leftover.value), 
+                                 pleo.leftover)
         if parsed:
             parsed_instance = cls.parse_from_group_dict(parsed.matched_groupdict, parsed)
             parsed_instance.source = region
@@ -690,7 +683,7 @@ class ValuesCommand(Parseable):
     
     @classmethod
     def parse_value_setting(cls, region):
-        parsed = region.parse(cls.VALUE_SETTING_REGEX, completely = True)
+        parsed = region.parse(cls.VALUE_SETTING_REGEX)
         key_region = parsed.named_group('key')
         value_region = parsed.named_group('value')
         key = key_region.value
