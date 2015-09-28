@@ -155,7 +155,7 @@ class ParseableFromRegex(Parseable):
                                  pleo.leftover)
         except RegexFailedToMatch, rftm:
             raise ParseException('Invalid %s: %r' % (cls.description, region.value), region)
-        parsed_instance = cls.parse_from_group_dict(region.match_groupdict, region)
+        parsed_instance = cls.parse_from_matched_region(region)
         parsed_instance.source = region
         return parsed_instance
 
@@ -164,7 +164,7 @@ class Cut(ParseableFromRegex):
     parse_regex = regex.compile(r'[!]')
 
     @classmethod
-    def parse_from_group_dict(cls, group_dict, source):
+    def parse_from_matched_region(cls, region):
         return Cut()
         
     def unparse(self):
@@ -177,7 +177,7 @@ class Tie(ParseableFromRegex):
     cuttable = True
 
     @classmethod
-    def parse_from_group_dict(cls, group_dict, source):
+    def parse_from_matched_region(cls, region):
         return Tie()
         
     def unparse(self):
@@ -220,7 +220,7 @@ class BarLine(ParseableFromRegex):
         song.current_duration = DEFAULT_DURATION
     
     @classmethod
-    def parse_from_group_dict(cls, group_dict, source):
+    def parse_from_matched_region(cls, region):
         return BarLine()
         
     def unparse(self):
@@ -374,7 +374,8 @@ class Chord(ParseableFromRegex):
             return None
         
     @classmethod
-    def parse_from_group_dict(cls, group_dict, source):
+    def parse_from_matched_region(cls, region):
+        group_dict = region.match_groupdict
         chord_notes_string = group_dict['chord_notes']
         bass_note_string = group_dict['bass']
         bass_note = cls.parse_one_note(bass_note_string)
@@ -516,7 +517,8 @@ class Note(ParseableFromRegex):
     description = 'note'
     
     @classmethod
-    def parse_from_group_dict(cls, group_dict, source):
+    def parse_from_matched_region(cls, region):
+        group_dict = region.match_groupdict
         ups = len(group_dict['ups'] or '')
         downs = len(group_dict['downs'] or '')
         ups = ups - downs
