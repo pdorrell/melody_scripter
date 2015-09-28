@@ -73,7 +73,7 @@ class LineToParse(object):
         self.line = line
         
     def as_region(self):
-        return LineRegionToParse(self, 0, len(self.line), self.line)
+        return LineRegionToParse(self, 0, len(self.line))
         
     def show_error(self, error_message, pos):
         print("")
@@ -87,11 +87,11 @@ class LineToParse(object):
 
         
 class LineRegionToParse(object):
-    def __init__(self, line_to_parse, start, end, value, regex = None, match = None):
+    def __init__(self, line_to_parse, start, end, regex = None, match = None):
         self.line_to_parse = line_to_parse
         self.start = start
         self.end = end
-        self.value = value
+        self.value = self.line_to_parse.line[start:end]
         self.regex = regex
         self.matched = match
         self.matched_groupdict = match.groupdict() if match else None
@@ -102,7 +102,7 @@ class LineRegionToParse(object):
             match_end = match.end()
             if match_end < self.end:
                 raise ParseLeftOverException(self.sub_region((match_end, self.end)))
-            return LineRegionToParse(self.line_to_parse, match.start(), match.end(), match.group(), regex, match)
+            return LineRegionToParse(self.line_to_parse, match.start(), match.end(), regex, match)
         else:
             return None
         
@@ -111,7 +111,7 @@ class LineRegionToParse(object):
         
     def sub_region(self, span):
         start, end = span
-        return LineRegionToParse(self.line_to_parse, start, end, self.line_to_parse.line[start:end])
+        return LineRegionToParse(self.line_to_parse, start, end)
         
     def match(self, regex):
         match = regex.match(self.line_to_parse.line, self.start, self.end)
@@ -120,7 +120,7 @@ class LineRegionToParse(object):
     def named_group(self, name):
         if self.match and self.matched_groupdict[name] is not None:
             group_index = self.regex.groupindex[name]
-            return LineRegionToParse(self.line_to_parse, self.matched.start(group_index), self.matched.end(group_index), self.matched.group(group_index))
+            return LineRegionToParse(self.line_to_parse, self.matched.start(group_index), self.matched.end(group_index))
         else:
             return None
         

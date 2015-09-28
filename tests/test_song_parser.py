@@ -18,8 +18,7 @@ file_to_parse = FileToParse('name')
 def as_region(string, left_offset = 12, right_offset = 15):
     full_text = '*' * left_offset + string + '#' * right_offset
     line_to_parse = LineToParse(file_to_parse, 1, full_text)
-    return LineRegionToParse(line_to_parse, start = left_offset, end = left_offset + len(string), 
-                             value = string)
+    return LineRegionToParse(line_to_parse, start = left_offset, end = left_offset + len(string))
 
 class ParserTestCase(unittest.TestCase):
     @contextmanager
