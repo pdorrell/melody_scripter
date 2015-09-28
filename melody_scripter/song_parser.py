@@ -85,6 +85,10 @@ class LineToParse(object):
         print("%s%s" % (indent, error_message))
         print("")
 
+class RegexFailedToMatch(Exception):
+    
+    def __init__(self):
+        super(RegexFailedToMatch, self).__init__('Failed to match regex')
         
 class LineRegionToParse(object):
     def __init__(self, line_to_parse, start, end, regex = None, match = None):
@@ -92,19 +96,18 @@ class LineRegionToParse(object):
         self.start = start
         self.end = end
         self.value = self.line_to_parse.line[start:end]
-        self.regex = regex
-        self.matched = match
-        self.matched_groupdict = match.groupdict() if match else None
         
     def parse(self, regex):
-        match = regex.match(self.line_to_parse.line, self.start, self.end)
+        match = self.match(regex)
         if match:
             match_end = match.end()
             if match_end < self.end:
                 raise ParseLeftOverException(self.sub_region((match_end, self.end)))
-            return LineRegionToParse(self.line_to_parse, match.start(), match.end(), regex, match)
+            self.regex = regex
+            self.match = match
+            self.match_groupdict = match.groupdict() if match else None
         else:
-            return None
+            raise RegexFailedToMatch()
         
     def rest_of_line(self):
         return self.line_to_parse.line[self.start:]
@@ -114,13 +117,12 @@ class LineRegionToParse(object):
         return LineRegionToParse(self.line_to_parse, start, end)
         
     def match(self, regex):
-        match = regex.match(self.line_to_parse.line, self.start, self.end)
-        return match
+        return regex.match(self.line_to_parse.line, self.start, self.end)
     
     def named_group(self, name):
-        if self.match and self.matched_groupdict[name] is not None:
+        if self.match_groupdict[name] is not None:
             group_index = self.regex.groupindex[name]
-            return LineRegionToParse(self.line_to_parse, self.matched.start(group_index), self.matched.end(group_index))
+            return LineRegionToParse(self.line_to_parse, self.match.start(group_index), self.match.end(group_index))
         else:
             return None
         
@@ -144,17 +146,16 @@ class Parseable(object):
     @classmethod
     def parse(cls, region):
         try:
-            parsed = region.parse(cls.parse_regex)
+            region.parse(cls.parse_regex)
         except ParseLeftOverException, pleo:
             raise ParseException('Invalid %s: %r (extra data %r)' 
                                  % (cls.description, region.value, pleo.leftover.value), 
                                  pleo.leftover)
-        if parsed:
-            parsed_instance = cls.parse_from_group_dict(parsed.matched_groupdict, parsed)
-            parsed_instance.source = region
-            return parsed_instance
-        else:
+        except RegexFailedToMatch, rftm:
             raise ParseException('Invalid %s: %r' % (cls.description, region.value), region)
+        parsed_instance = cls.parse_from_group_dict(region.match_groupdict, region)
+        parsed_instance.source = region
+        return parsed_instance
 
 class Cut(Parseable):
     description = 'cut'
@@ -683,9 +684,9 @@ class ValuesCommand(Parseable):
     
     @classmethod
     def parse_value_setting(cls, region):
-        parsed = region.parse(cls.VALUE_SETTING_REGEX)
-        key_region = parsed.named_group('key')
-        value_region = parsed.named_group('value')
+        region.parse(cls.VALUE_SETTING_REGEX)
+        key_region = region.named_group('key')
+        value_region = region.named_group('value')
         key = key_region.value
         value_setter_class = cls.value_setters.get(key)
         if value_setter_class is None:
@@ -1003,16 +1004,16 @@ class Song(Parseable):
         
     @classmethod
     def parse_line(cls, line):
-        parsed = line.parse(cls.LINE_REGEX)
-        command_line = parsed.named_group('command')
+        line.parse(cls.LINE_REGEX)
+        command_line = line.named_group('command')
         if command_line:
             return [SongCommand.parse(command_line)]
         else:
-            song_items = parsed.named_group('song_items')
+            song_items = line.named_group('song_items')
             if song_items:
                 return SongItems.parse(song_items)
             else:
-                raise Exception('No match for line: %r' % parsed.value)
+                raise Exception('No match for line: %r' % line.value)
         
             
     def __repr__(self):
