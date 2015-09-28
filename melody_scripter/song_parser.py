@@ -119,6 +119,11 @@ class LineRegionToParse(object):
     def match(self, regex):
         return regex.match(self.line_to_parse.line, self.start, self.end)
     
+    def named_groups(self, name):
+        group_index = self.regex.groupindex[name]
+        capture_spans = self.match.spans(group_index)
+        return [self.sub_region(span) for span in capture_spans]
+    
     def named_group(self, name):
         if self.match_groupdict[name] is not None:
             group_index = self.regex.groupindex[name]
@@ -617,25 +622,26 @@ class SongItem(ParseFromChoices):
     class_dict = dict(chord = Chord, barline = BarLine, note = Note, cut = Cut, tie = Tie)
 
 
-class ParseItems(object):
+class ParseItems(ParseableFromRegex):
     
     @classmethod
-    def parse_item_regions(cls, region):
-        match = region.match(cls.items_regex)
-        if match:
-            item_group_index = cls.items_regex.groupindex['item']
-            item_capture_spans = match.spans(item_group_index)
-            return [region.sub_region(span) for span in item_capture_spans]
+    def parse_from_matched_region(cls, region):
+        item_regions = region.named_groups('item')
+        return cls([cls.item_class.parse(item_region) for item_region in item_regions])
+    
+    def __init__(self, items):
+        self.items = items
         
-    @classmethod
-    def parse(cls, region):
-        item_regions = cls.parse_item_regions(region)
-        return [cls.item_class.parse(item_region) for item_region in item_regions]    
+    def __iter__(self):
+        return iter(self.items)
+    
+    def as_data(self):
+        return self.items
 
 
 class SongItems(ParseItems):
     
-    items_regex = regex.compile(r'\s*((?P<item>\S+)\s*)*')
+    parse_regex = regex.compile(r'\s*((?P<item>\S+)\s*)*')
     
     item_class = SongItem
 

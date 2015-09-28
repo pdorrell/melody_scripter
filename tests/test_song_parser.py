@@ -299,13 +299,14 @@ class TestSongItemParser(ParserTestCase):
         
     def test_song_item_parse_regions(self):
         region = as_region(' [C] c e e c | [G] ')
-        item_regions = SongItems.parse_item_regions(region)
+        region.parse(SongItems.parse_regex)
+        item_regions = region.named_groups('item')
         item_region_values = [region.value for region in item_regions]
         self.assertEquals(item_region_values, ['[C]', 'c', 'e', 'e', 'c', '|', '[G]'])
 
     def test_song_items(self):
         region = as_region(' [C] c e | [Am] ')
-        song_items = SongItems.parse(region)
+        song_items = list(SongItems.parse(region))
         expected_song_items = [Chord(ScaleNote(0), descriptor = ''), 
                                Note(0), Note(2), BarLine(), 
                                Chord(ScaleNote(5), descriptor = 'm')]
