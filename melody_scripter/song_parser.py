@@ -850,6 +850,8 @@ class GrooveCommand(ParseableFromRegex):
             raise ParseException('Invalid delays', region)
 
 class NamedCommand(object):
+    command_regex = regex.compile(r'(?P<command>[^.:]+)(.[^:]+)?:')
+    
     @classmethod
     def parse(cls, region):
         match = region.match(cls.command_regex)
@@ -866,8 +868,6 @@ class NamedCommand(object):
 
     
 class SongCommand(NamedCommand):
-    
-    command_regex = regex.compile(r'(?P<command>[^.:]+)(.[^:]+)?:')
     
     description = 'song command'
     
