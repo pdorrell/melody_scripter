@@ -25,6 +25,7 @@ class ParserTestCase(unittest.TestCase):
     def parse_exception(self, message, looking_at):
         try:
             yield
+            self.fail('No ParseException')
         except ParseException, pe:
             self.assertEquals(pe.message, message)
             self.assertEquals(pe.location.rest_of_line()[0:len(looking_at)], looking_at)
@@ -344,13 +345,18 @@ class TestCommandParser(ParserTestCase):
             SongValuesCommand.parse_value_setting(as_region('tempo_bpm = 23000'))
         
     def test_song_values_song_command(self):
-        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ticks_per_beat = 12, subticks_per_tick = 5')
+        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4 ,ticks_per_beat = 12 , subticks_per_tick = 5 ')
         
         values_command = SongCommand.parse(command_region)
         self.assertEquals(values_command.source, command_region)
         self.assertEquals(values_command, 
                           SongValuesCommand([SetSongTempoBpm(80), SetSongBeatsPerBar(4), 
                                              SetSongTicksPerBeat(12), SetSongSubTicksPerTick(5)]))
+        
+    def test_trailing_comma(self):
+        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ')
+        with self.parse_exception('Extra data', ',  '):
+            values_command = SongCommand.parse(command_region)
 
     def test_track_values_command(self):
         qualifier_region = as_region('melody')
@@ -468,7 +474,7 @@ class TestSongParser(ParserTestCase):
             self._continuation_song('| a ~b b c | d e2 e1 |')
         with self.parse_exception('Note marked as continued, but there is no previous note', '~a b b'):
             self._continuation_song('| ~a b b c | d e2 e1 |')
-        with self.parse_exception('Note marked as continued, but previous note not marked as to continue', '~b~ c'):
+        with self.parse_exception('Note not marked as continued, but previous note was marked as to continue', 'b c |'):
             self._continuation_song('| b~ ~b~ b c | d e2 e1 |')
         with self.parse_exception('Continued note is not the same pitch as previous note', '~b b c'):
             self._continuation_song('| a~ ~b b c | d e2 e1 |')

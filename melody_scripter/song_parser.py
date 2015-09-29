@@ -495,7 +495,12 @@ class Note(ParseableFromRegex):
                 self.continuation_start = song.last_note.continuation_start
                 self.continuation_start.duration_ticks += self.duration_ticks
             else:
-                raise ParseException('Note marked as continued, but there is no previous note', self.source)            
+                raise ParseException('Note marked as continued, but there is no previous note', self.source)
+        else:
+            if song.last_note and song.last_note.to_continue:
+                raise ParseException('Note not marked as continued, but previous note was marked as to continue', 
+                                     self.source)
+                
         
     def visit_midi_track(self, midi_track):
         if not self.continued:
@@ -719,19 +724,6 @@ class ValuesCommand(ParseableFromRegex):
         value_setting.source = region
         return value_setting
     
-    @classmethod
-    def parse(cls, region):
-        match = region.match(cls.parse_regex)
-        if match:
-            item_group_index = cls.parse_regex.groupindex['item']
-            item_capture_spans = match.spans(item_group_index)
-            item_regions = [region.sub_region(span) for span in item_capture_spans]
-            values = [cls.parse_value_setting(item_region) for item_region in item_regions]
-            init_args = cls.get_init_args(values, match)
-            values_command = cls(*init_args)
-            values_command.source = region
-            return values_command
-        
     
 class SetSongTempoBpm(ValueSetter):
     key = 'tempo_bpm'
