@@ -667,7 +667,7 @@ class IntValueParser(object):
             self.raise_invalid_value_exception(label, value, value_region)
         return value
 
-class ValueSetter(ParseableFromRegex):
+class ValueSetter(Parseable):
     
     def __init__(self, value):
         self.value = value
@@ -676,14 +676,28 @@ class ValueSetter(ParseableFromRegex):
         return self.value
         
     @classmethod
-    def parse(cls, region):
-        value = cls.value_parser.parse(cls.key, region)
+    def parse_value(cls, value_region):
+        value = cls.value_parser.parse(cls.key, value_region)
         value_setter = cls(value)
         return value_setter
     
+class RawValueSetting(ParseableFromRegex):
+
+    parse_regex = regex.compile(r'((?P<key>[^=\s]+)\s*=\s*(?P<value>.*))')
+    
+    description = 'value setting'
+
+    @classmethod
+    def parse_from_matched_region(cls, region):
+        return RawValueSetting(region.named_group('key'), region.named_group('value'))
+    
+    def __init__(self, key_region, value_region):
+        self.key_region = key_region
+        self.value_region = value_region
+    
 class ValuesCommand(ParseableFromRegex):
     
-    VALUE_SETTING_REGEX = regex.compile(r'((?P<key>[^=\s]+)\s*=\s*(?P<value>.*))')
+    items_regex = regex.compile(r'((?P<item>[^,]+)\s*[,]?\s*)*')
     
     def __init__(self, values):
         self.values = values
@@ -694,15 +708,14 @@ class ValuesCommand(ParseableFromRegex):
     
     @classmethod
     def parse_value_setting(cls, region):
-        region.parse(cls.VALUE_SETTING_REGEX)
-        key_region = region.named_group('key')
-        value_region = region.named_group('value')
-        key = key_region.value
+        
+        raw_value_setting = RawValueSetting.parse(region)
+        key = raw_value_setting.key_region.value
         value_setter_class = cls.value_setters.get(key)
         if value_setter_class is None:
             raise ParseException('Invalid value key for %s: %r' % (cls.description, key), 
-                                 key_region)
-        value_setting = value_setter_class.parse(value_region)
+                                 raw_value_setting.key_region)
+        value_setting = value_setter_class.parse_value(raw_value_setting.value_region)
         value_setting.source = region
         return value_setting
     
@@ -757,7 +770,14 @@ class SongValuesCommand(ValuesCommand):
                          ticks_per_beat = SetSongTicksPerBeat, 
                          subticks_per_tick = SetSongSubTicksPerTick)
     
-    parse_regex = regex.compile(r'song:\s*(\s*(?P<item>[^,]+)\s*[,]?)*')
+    @classmethod
+    def parse_command(cls, qualifier_region, body_region):
+        if qualifier_region is not None:
+            raise ParseException('Unexpected qualifier in %r command' % cls.description, 
+                                 qualifier_region)
+        body_region.parse(cls.items_regex)
+        item_regions = body_region.named_groups('item')
+        return SongValuesCommand(values = [cls.parse_value_setting(item_region) for item_region in item_regions])
 
     @classmethod
     def get_init_args(cls, values, match):
@@ -804,7 +824,15 @@ class TrackValuesCommand(ValuesCommand):
                          volume = SetTrackVolume, 
                          octave = SetTrackOctave)
 
-    parse_regex = regex.compile(r'track.(?P<name>[a-z]+):\s*(\s*(?P<item>[^,]+)\s*[,]?)*')
+    @classmethod
+    def parse_command(cls, qualifier_region, body_region):
+        if qualifier_region is None:
+            raise ParseException('Missing qualifier in %r command' % cls.description, 
+                                 qualifier_region)
+        body_region.parse(cls.items_regex)
+        item_regions = body_region.named_groups('item')
+        return TrackValuesCommand(qualifier_region.value, 
+                                  values = [cls.parse_value_setting(item_region) for item_region in item_regions])
 
     @classmethod
     def get_init_args(cls, values, match):
@@ -849,23 +877,18 @@ class GrooveCommand(ParseableFromRegex):
         else:
             raise ParseException('Invalid delays', region)
 
-class NamedCommand(object):
-    command_regex = regex.compile(r'(?P<command>[^.:]+)(.[^:]+)?:')
+class NamedCommand(ParseableFromRegex):
+    parse_regex = regex.compile(r'(?P<command>[^.:]+)(.(?P<qualifier>[^:]+))?:\s*(?P<body>.*)')
     
     @classmethod
-    def parse(cls, region):
-        match = region.match(cls.command_regex)
-        if match:
-            group_dict = match.groupdict()
-            command = group_dict['command']
-            command_class = cls.commands.get(command)
-            if command_class is None:
-                raise ParseException('Unknown %s: %r' % (cls.description, command), 
-                                     region)
-            return command_class.parse(region)
-        else:
-            raise ParseException('Invalid %s' % cls.description, region)
-
+    def parse_from_matched_region(cls, region):
+        command = region.match_groupdict['command']
+        command_class = cls.commands.get(command)
+        if command_class is None:
+            raise ParseException('Unknown %s: %r' % (cls.description, command), 
+                                 region)
+        return command_class.parse_command(region.named_group('qualifier'), 
+                                           region.named_group('body'))
     
 class SongCommand(NamedCommand):
     

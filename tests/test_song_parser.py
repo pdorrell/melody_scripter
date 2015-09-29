@@ -318,17 +318,17 @@ class TestCommandParser(ParserTestCase):
     
     def test_int_value_parser(self):
         region = as_region('23')
-        track_volume = SetTrackVolume.parse(region)
+        track_volume = SetTrackVolume.parse_value(region)
         self.assertEquals(track_volume, SetTrackVolume(23))
         with self.parse_exception('Invalid value for volume: 145 - must be an integer from 0 to 127', 
                                   '145'):
-            SetTrackVolume.parse(as_region('145'))
+            SetTrackVolume.parse_value(as_region('145'))
         with self.parse_exception("Invalid value for volume: '12wrong' - must be an integer from 0 to 127", 
                                   '12wrong'):
-            SetTrackVolume.parse(as_region('12wrong'))
+            SetTrackVolume.parse_value(as_region('12wrong'))
         with self.parse_exception("Invalid value for volume: 'wrong' - must be an integer from 0 to 127", 
                                   'wrong'):
-            SetTrackVolume.parse(as_region('wrong'))
+            SetTrackVolume.parse_value(as_region('wrong'))
 
             
     def test_value_setting_parser(self):
@@ -343,34 +343,19 @@ class TestCommandParser(ParserTestCase):
                                   '23000'):
             SongValuesCommand.parse_value_setting(as_region('tempo_bpm = 23000'))
         
-    def test_song_values_command(self):
+    def test_song_values_song_command(self):
         command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ticks_per_beat = 12, subticks_per_tick = 5')
         
-        values_command = SongValuesCommand.parse(command_region)
+        values_command = SongCommand.parse(command_region)
         self.assertEquals(values_command.source, command_region)
         self.assertEquals(values_command, 
                           SongValuesCommand([SetSongTempoBpm(80), SetSongBeatsPerBar(4), 
                                              SetSongTicksPerBeat(12), SetSongSubTicksPerTick(5)]))
 
     def test_track_values_command(self):
-        command_region = as_region('track.melody: instrument = 73, volume=100, octave=3')
-        values_command = TrackValuesCommand.parse(command_region)
-        self.assertEquals(values_command.source, command_region)
-        self.assertEquals(values_command, 
-                          TrackValuesCommand('melody', 
-                                             [SetTrackInstrument(73), SetTrackVolume(100), SetTrackOctave(3)]))
-        
-    def test_values_command(self):
-        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ticks_per_beat = 12')
-
-        values_command = SongCommand.parse(command_region)
-        self.assertEquals(values_command.source, command_region)
-        self.assertEquals(values_command, 
-                          SongValuesCommand([SetSongTempoBpm(80), SetSongBeatsPerBar(4), SetSongTicksPerBeat(12)]))
-
-        command_region = as_region('track.melody: instrument = 73, volume=100, octave=3')
-        values_command = SongCommand.parse(command_region)
-        
+        qualifier_region = as_region('melody')
+        body_region = as_region('instrument = 73, volume=100, octave=3')
+        values_command = TrackValuesCommand.parse_command(qualifier_region, body_region)
         self.assertEquals(values_command, 
                           TrackValuesCommand('melody', 
                                              [SetTrackInstrument(73), SetTrackVolume(100), SetTrackOctave(3)]))
