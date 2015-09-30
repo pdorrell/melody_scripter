@@ -369,6 +369,14 @@ class TestCommandParser(ParserTestCase):
         with self.parse_exception("Extra data when parsing: ',  '", ',  '):
             values_command = SongCommand.parse(command_region)
 
+    def test_repeated_commas(self):
+        command_region = as_region('song: tempo_bpm=80,, beats_per_bar = 4,  ')
+        with self.parse_exception("Extra data when parsing: ',, beats_per_bar = 4,  '", ',, b'):
+            values_command = SongCommand.parse(command_region)
+        command_region = as_region('song: tempo_bpm=80, , beats_per_bar = 4,  ')
+        with self.parse_exception("Extra data when parsing: ', , beats_per_bar = 4,  '", ', , b'):
+            values_command = SongCommand.parse(command_region)
+
     def test_track_values_command(self):
         qualifier_region = as_region('melody')
         body_region = as_region('instrument = 73, volume=100, octave=3')
