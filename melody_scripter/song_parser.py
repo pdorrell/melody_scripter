@@ -37,10 +37,9 @@ class ParseException(Exception):
     def show_error(self):
         self.location.show_error(self.message)
         
-class ParseLeftOverException(Exception):
+class ParseLeftOverException(ParseException):
     def __init__(self, leftover):
-        super(Exception, self).__init__('Extra data when parsing: %r' % leftover)
-        self.leftover = leftover
+        super(ParseLeftOverException, self).__init__('Extra data when parsing: %r' % leftover.value, leftover)
 
 class FileToParse(object):
     def __init__(self, file_name):
@@ -134,6 +133,12 @@ class LineRegionToParse(object):
     def show_error(self, error_message):
         self.line_to_parse.show_error(error_message, self.start)
         
+    strip_regex = regex.compile(r'\s*(?P<stripped>.*\S)\s*')
+        
+    def stripped(self):
+        self.parse(self.strip_regex)
+        return self.named_group('stripped')
+        
 class Parseable(object):
     
     def __eq__(self, other):
@@ -156,8 +161,8 @@ class ParseableFromRegex(Parseable):
             region.parse(cls.parse_regex)
         except ParseLeftOverException, pleo:
             raise ParseException('Invalid %s: %r (extra data %r)' 
-                                 % (cls.description, region.value, pleo.leftover.value), 
-                                 pleo.leftover)
+                                 % (cls.description, region.value, pleo.location.value), 
+                                 pleo.location)
         except RegexFailedToMatch, rftm:
             raise ParseException('Invalid %s: %r' % (cls.description, region.value), region)
         parsed_instance = cls.parse_from_matched_region(region)
@@ -702,8 +707,8 @@ class RawValueSetting(ParseableFromRegex):
     
 class ValuesCommand(ParseableFromRegex):
     
-    items_regex = regex.compile(r'((?P<item>[^,]+)\s*[,]?\s*)*')
-    
+    items_regex = regex.compile(r'((?P<item>[^,]+)([,]\s*(?P<item>[^\s,][^,]*))*)')
+
     def __init__(self, values):
         self.values = values
         self.cuttable = False
@@ -769,7 +774,8 @@ class SongValuesCommand(ValuesCommand):
                                  qualifier_region)
         body_region.parse(cls.items_regex)
         item_regions = body_region.named_groups('item')
-        return SongValuesCommand(values = [cls.parse_value_setting(item_region) for item_region in item_regions])
+        return SongValuesCommand(values = [cls.parse_value_setting(item_region.stripped()) 
+                                           for item_region in item_regions])
 
     @classmethod
     def get_init_args(cls, values, match):
@@ -824,7 +830,8 @@ class TrackValuesCommand(ValuesCommand):
         body_region.parse(cls.items_regex)
         item_regions = body_region.named_groups('item')
         return TrackValuesCommand(qualifier_region.value, 
-                                  values = [cls.parse_value_setting(item_region) for item_region in item_regions])
+                                  values = [cls.parse_value_setting(item_region.stripped()) 
+                                            for item_region in item_regions])
 
     @classmethod
     def get_init_args(cls, values, match):

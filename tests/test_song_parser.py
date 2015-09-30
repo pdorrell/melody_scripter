@@ -34,6 +34,17 @@ class ParserTestCase(unittest.TestCase):
         if x != y:
             self.fail('Values not equal:\n  %r\n  %r' % (x, y))
             
+class TestLineRegion(ParserTestCase):
+    
+    def test_stripped(self):
+        region = as_region('   hello world  ')
+        self.assertEquals(region.stripped().value, 'hello world')
+        region = as_region('   hello world')
+        self.assertEquals(region.stripped().value, 'hello world')
+        region = as_region('hello world  ')
+        self.assertEquals(region.stripped().value, 'hello world')
+        
+            
 class TestNoteNames(ParserTestCase):
     
     def test_note_names(self):
@@ -354,8 +365,8 @@ class TestCommandParser(ParserTestCase):
                                              SetSongTicksPerBeat(12), SetSongSubTicksPerTick(5)]))
         
     def test_trailing_comma(self):
-        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4, ')
-        with self.parse_exception('Extra data', ',  '):
+        command_region = as_region('song: tempo_bpm=80, beats_per_bar = 4,  ')
+        with self.parse_exception("Extra data when parsing: ',  '", ',  '):
             values_command = SongCommand.parse(command_region)
 
     def test_track_values_command(self):
