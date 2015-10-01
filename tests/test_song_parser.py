@@ -9,7 +9,7 @@ from melody_scripter.song_parser import SongValuesCommand, SetSongTempoBpm, SetS
 from melody_scripter.song_parser import SetSongTicksPerBeat, SetSongSubTicksPerTick
 from melody_scripter.song_parser import TrackValuesCommand, SetTrackInstrument, SetTrackVolume, SetTrackOctave
 from melody_scripter.song_parser import SongCommand, Song, find_next_note
-from melody_scripter.song_parser import Groove
+from melody_scripter.song_parser import Groove, GrooveCommand
 
 from contextlib import contextmanager
 
@@ -395,6 +395,15 @@ class TestGroove(ParserTestCase):
         self.assertEquals(groove.get_subticks(tick = 2), 20)
         self.assertEquals(groove.get_subticks(tick = 20), 200)
         self.assertEquals(groove.get_subticks(tick = 23), 233)
+        
+    def test_parse_groove(self):
+        region = as_region('groove: 0 3')
+        command = SongCommand.parse(region)
+        self.assertEquals(command, GrooveCommand(delays = [0, 3]))
+        
+        region = as_region('groove: 0 wrong 3')
+        with self.parse_exception("Extra data when parsing: 'wrong 3'", "wrong 3"):
+            command = SongCommand.parse(region)
         
         
 class TestSongParser(ParserTestCase):

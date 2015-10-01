@@ -704,8 +704,16 @@ class RawValueSetting(ParseableFromRegex):
     def __init__(self, key_region, value_region):
         self.key_region = key_region
         self.value_region = value_region
+        
+class Command(ParseableFromRegex):
     
-class ValuesCommand(ParseableFromRegex):
+    @classmethod
+    def require_no_qualifier(cls, qualifier_region):
+        if qualifier_region is not None:
+            raise ParseException('Unexpected qualifier in %r command' % cls.description, 
+                                 qualifier_region)
+    
+class ValuesCommand(Command):
     
     items_regex = regex.compile(r'((?P<item>[^,]+)([,]\s*(?P<item>[^\s,][^,]*))*)')
 
@@ -769,9 +777,7 @@ class SongValuesCommand(ValuesCommand):
     
     @classmethod
     def parse_command(cls, qualifier_region, body_region):
-        if qualifier_region is not None:
-            raise ParseException('Unexpected qualifier in %r command' % cls.description, 
-                                 qualifier_region)
+        cls.require_no_qualifier(qualifier_region)
         body_region.parse(cls.items_regex)
         item_regions = body_region.named_groups('item')
         return SongValuesCommand(values = [cls.parse_value_setting(item_region.stripped()) 
@@ -845,12 +851,17 @@ class TrackValuesCommand(ValuesCommand):
         for value in self.values:
             value.resolve(track)
             
-class GrooveCommand(ParseableFromRegex):
+class GrooveCommand(Command):
     
-    delays_regex = regex.compile(r'groove:\s*((?P<delay>[-+]?[0-9]+)\s*)+')
+    description = 'groove command'
+    
+    delays_regex = regex.compile(r'((?P<delay>[-+]?[0-9]+)\s*)+')
     
     def __init__(self, delays):
         self.delays = delays
+        
+    def as_data(self):
+        return self.delays
         
     @classmethod
     def parse_delay(cls, region):
@@ -865,16 +876,12 @@ class GrooveCommand(ParseableFromRegex):
         song.set_groove()
         
     @classmethod
-    def parse(cls, region):
-        match = region.match(cls.delays_regex)
-        if match:
-            delay_group_index = cls.delays_regex.groupindex['delay']
-            delay_capture_spans = match.spans(delay_group_index)
-            delay_regions = [region.sub_region(span) for span in delay_capture_spans]
-            delays = [cls.parse_delay(delay_region) for delay_region in delay_regions]
-            return GrooveCommand(delays)
-        else:
-            raise ParseException('Invalid delays', region)
+    def parse_command(cls, qualifier_region, body_region):
+        cls.require_no_qualifier(qualifier_region)
+        body_region.parse(cls.delays_regex)
+        delay_regions = body_region.named_groups('delay')
+        delays = [cls.parse_delay(delay_region) for delay_region in delay_regions]
+        return GrooveCommand(delays)
 
 class NamedCommand(ParseableFromRegex):
     parse_regex = regex.compile(r'(?P<command>[^.:]+)(.(?P<qualifier>[^:]+))?:\s*(?P<body>.*)')
