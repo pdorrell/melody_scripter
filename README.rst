@@ -50,10 +50,10 @@ A command line starts with a **command** (after the initial '*' character).
 The command is followed by a ':' character, and then one or more
 comma-separated arguments.
 
-Currently there are four commands, which are **song**, and three 'track' commands:
-**track.melody**, **track.chord** and **track.bass**.
+Currently there are five commands, which are **song**, three 'track' commands:
+**track.melody**, **track.chord** and **track.bass**, and **groove**.
 
-All four commands take arguments which are **property settings**, consisting 
+The **song** and **track** commands take arguments which are **property settings**, consisting 
 in each case of a **key** and a **value**, specified as *key* = *value*.
 
 Currently all property settings can be executed only prior to any song items,
@@ -65,15 +65,17 @@ Song Property Settings
 
 Available property settings for the **song** command are:
 
-+----------------+--------------------------------------+------------+--------------+
-| key            | value                                | default    | valid values |
-+================+======================================+============+==============+
-| tempo_bpm      | Tempo in beats per minute            | 120        | 1 to 1000    |
-+----------------+--------------------------------------+------------+--------------+
-| beats_per_bar  | Beats per bar                        | 4          | 1 to 32      |
-+----------------+--------------------------------------+------------+--------------+
-| ticks_per_beat | Ticks per beat                       | 4          | 1 to 2000    |
-+----------------+--------------------------------------+------------+--------------+
++-------------------+--------------------------------------+------------+--------------+
+| key               | value                                | default    | valid values |
++===================+======================================+============+==============+
+| tempo_bpm         | Tempo in beats per minute            | 120        | 1 to 1000    |
++-------------------+--------------------------------------+------------+--------------+
+| beats_per_bar     | Beats per bar                        | 4          | 1 to 32      |
++-------------------+--------------------------------------+------------+--------------+
+| ticks_per_beat    | Ticks per beat                       | 4          | 1 to 2000    |
++-------------------+--------------------------------------+------------+--------------+
+| subticks_per_tick | Ticks per beat                       | 1          | 1 to 100     |
++-------------------+--------------------------------------+------------+--------------+
 
 The **tempo_bpm** and **ticks_per_beat** values both determine corresponding values when
 a Midi file is generated. "Ticks" are the unit of time in the song, and every note
@@ -82,6 +84,9 @@ or rest length must be a whole number of ticks |--| if not, an error occurs.
 The **beats_per_bar** value defines the required length of each complete bar. It has no effect on Midi
 output, but if the contents of a bar do not have the correct total length, it's an error.
 (It's OK to have partial bars at the start and end of the song.)
+
+The **subticks_per_tick** command is only relevant to the **groove** command, and it determines
+how many "subticks" there are in each tick. ("Groove" is defined in terms of sub-tick displacements.)
 
 
 Track Property Settings
@@ -120,6 +125,21 @@ the **chord** and **bass** tracks, it determines the octave of all root notes an
 
 Although octave values are allowed from -1 to 10, not all Midi notes in the 10th octave are allowed,
 and an error will occur if a note occurs with a value greater than 127.
+
+Groove
+------
+
+A **groove** command is specified by one or more numerical "sub-tick" displacements.
+
+The number of values given in a **groove** command must divide evenly into the number of ticks in the bar.
+
+For example, a **groove** command might specify **0 2 1 2** where there are 4 beats per bar and 2 ticks
+per beat. The 4 groove values are applied to the 8 tick values per bar by repeating them twice, ie
+**0 2 1 2 0 2 1 2**. Each value determines how many sub-ticks are added to the time of each corresponding
+tick in each bar.
+
+The **subticks_per_tick** value in the **song** command specifies the length of a sub-tick. So if there
+are 10 subticks per tick, then a groove value of 2 corresponds to a displacement of 2/10 of tick.
 
 Song Items
 ----------
