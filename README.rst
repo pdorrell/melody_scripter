@@ -275,3 +275,15 @@ as installed on an  Ubuntu system, and it only plays Midi files if the **vlc-plu
 
 (An alternative playback option on Ubuntu is **timidity**, however even with the **--output-24bit**
 option, on my system, the sound quality is poor at the beginning of the song.)
+
+Limitations and Installation Issues
+===================================
+
+To install **Melody Scripter** into a Python environment, execute:
+
+    pip install -r requirements.txt
+
+**Melody Scripter** depends on the `midi 0.2.3 <https://pypi.python.org/pypi/midi/0.2.3>`_ library
+to write files. **midi 0.2.3** only runs on Python 2.x, and on Linux, the installation requires
+that **swig** be installed (eg by ``sudo apt-get install swig``). So, for the moment, **Melody Scripter**
+has the same limitations, and it is only tested to run on Python 2.7.
