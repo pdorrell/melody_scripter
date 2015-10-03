@@ -851,6 +851,30 @@ class TrackValuesCommand(ValuesCommand):
         for value in self.values:
             value.resolve(track)
             
+class GrooveDelay(ParseableFromRegex):
+    
+    description = 'groove delay'
+    
+    parse_regex = regex.compile(r'(?P<delay>[-+]?[0-9]+)')
+    
+    def __init__(self, delay):
+        self.delay = delay
+        
+    def as_data(self):
+        return self.delay
+
+    @classmethod
+    def parse_from_matched_region(cls, region):
+        return GrooveDelay(int(region.match_groupdict['delay']))
+            
+class GrooveDelays(ParseItems):
+    
+    description = 'groove delays'
+    
+    parse_regex = regex.compile(r'\s*((?P<item>\S+)\s*)+')
+    item_class = GrooveDelay
+    
+            
 class GrooveCommand(Command):
     
     description = 'groove command'
@@ -878,10 +902,8 @@ class GrooveCommand(Command):
     @classmethod
     def parse_command(cls, qualifier_region, body_region):
         cls.require_no_qualifier(qualifier_region)
-        body_region.parse(cls.delays_regex)
-        delay_regions = body_region.named_groups('delay')
-        delays = [cls.parse_delay(delay_region) for delay_region in delay_regions]
-        return GrooveCommand(delays)
+        groove_delays = GrooveDelays.parse(body_region)
+        return GrooveCommand(delays = [groove_delay.delay for groove_delay in groove_delays])
 
 class NamedCommand(ParseableFromRegex):
     parse_regex = regex.compile(r'(?P<command>[^.:]+)(.(?P<qualifier>[^:]+))?:\s*(?P<body>.*)')
