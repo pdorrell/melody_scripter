@@ -63,7 +63,7 @@ be defined which are valid within the song).
 Song Property Settings
 ----------------------
 
-Available property settings for the **song** command are:
+Available property settings for the ``song`` command are:
 
 +-------------------+--------------------------------------+------------+--------------+
 | key               | value                                | default    | valid values |
@@ -197,9 +197,9 @@ the given note letter, above
 or below the previous note, respectively. If more than one up or down marker is given, 
 then go an extra octave up or down for each extra marker.
 
-So, for example, ``c`` followed by ``e`` means go up to the next **e**, and ``c`` followed
-by ``^e`` *also* means go up to the next **e**. Whereas ``^^e`` means go up 9 notes to the **e**
-above that, ``Ve`` means go down to the first **e** below, and ``VVe`` means go to the **e** 
+So, for example, ``c`` followed by ``e`` means go up to the next E, and ``c`` followed
+by ``^e`` *also* means go up to the next E. Whereas ``^^e`` means go up 9 notes to the E
+above that, ``Ve`` means go down to the first E below, and ``VVe`` means go to the E
 below that one.
 
 Ties, and Note Continuations
@@ -271,9 +271,9 @@ Playback
 The ``main()`` method of ``play_song.py`` generates a Midi file from the Song file whose name is
 given as the first argument. After generating the Midi file, this method also plays it using 
 the ``/usr/bin/cvlc`` command, if that command is available. **cvlc** is the command line version of VLC, 
-as installed on an  Ubuntu system, and it only plays Midi files if the **vlc-plugin-fluidsynth** VLC plugin is installed.
+as installed on an Linux system, and it only plays Midi files if the **vlc-plugin-fluidsynth** VLC plugin is installed.
 
-(An alternative playback option on Ubuntu is **timidity**, however even with the ``--output-24bit``
+(An alternative playback option on Linux is **timidity**, however even with the ``--output-24bit``
 option, on my system, the sound quality is poor at the beginning of the song.)
 
 Limitations and Installation Issues
