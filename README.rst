@@ -29,7 +29,7 @@ The Song object model can generate a Midi file for the melody, for example:
 You can listen to an audio version (rendered using **fluidsynth**) at http://whatismusic.info/melody_scripter/.
 
 Currently Midi output is the only functionality provided by the Song object model,
-but the object model also provides a convenient representation of melody information
+but the object model would also provide a convenient representation of melody information
 for the purposes of scientific analysis.
 
 Melody Scripter File Format
