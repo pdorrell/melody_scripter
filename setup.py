@@ -65,7 +65,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['regex>=2015.09.15', 
-                      'midi==0.2.3'],
+                      'midi>=0.2.3'],
 
     dependency_links=[
         "https://github.com/vishnubob/python-midi/archive/v0.2.3.zip#egg=midi-0.2.3"
@@ -90,7 +90,7 @@ setup(
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[('songs', ['data/songs/*.song'])],
+    data_files=[],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

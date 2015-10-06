@@ -281,11 +281,21 @@ option, on my system, the sound quality is poor at the beginning of the song.)
 Limitations and Installation Issues
 ===================================
 
-To install **Melody Scripter** into a Python environment, execute::
+To install the latest stable version of **Melody Scripter** into a Python environment, execute::
 
-    pip install -r requirements.txt
+    pip install https://github.com/pdorrell/melody_scripter/archive/master.zip --process-dependency-links
 
-**Melody Scripter** depends on the `midi 0.2.3 <https://pypi.python.org/pypi/midi/0.2.3>`_ library
-to write files. **midi 0.2.3** only runs on Python 2.x, and on Linux, the installation requires
-that **swig** be installed (eg by ``sudo apt-get install swig``). So, for the moment, **Melody Scripter**
-has the same limitations, and it is only tested to run on Python 2.7.
+Notes:
+
+* **Melody Scripter** depends on the `midi 0.2.3 <https://pypi.python.org/pypi/midi/0.2.3>`_ library
+  to write files. **midi 0.2.3** only runs on Python 2.x, and on Linux, the installation requires
+  that **swig** be installed (eg by ``sudo apt-get install swig``). So, for the moment, **Melody Scripter**
+  has the same limitations, and it is only tested to run on Python 2.7.
+
+* `--process-dependency-links` is currently required because the **midi 0.2.3** dependency is not
+  directly downloadable from Pypi.
+
+* To install a specific tagged release, eg **0.0.5**, replace 'master' in the URL above with the tag.
+
+
+
