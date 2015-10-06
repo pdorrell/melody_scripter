@@ -90,6 +90,7 @@ class MidiSong(object):
         midi.write_midifile(file_name, self.midi_data)
         
 def play_midi_file_with_cvlc(file_name):
+    print("Playing midi file %s with cvlc ..." % file_name)
     cvlc_path = '/usr/bin/cvlc'
     if os.path.exists(cvlc_path):
         subprocess.call([cvlc_path, file_name, 'vlc://quit'])
@@ -111,7 +112,7 @@ def compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0):
 
 def play_song(song_file_path):
     midi_file_name = "%s.mid" % song_file_path
-    print("Playing song %s into %s ..." % (song_file_path, midi_file_name))
+    print("Playing song %s (after compiling to %s) ..." % (song_file_path, midi_file_name))
     try:
         compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0.2)
         play_midi_file_with_cvlc(midi_file_name)
