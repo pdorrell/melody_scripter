@@ -292,7 +292,7 @@ Notes:
   that **swig** be installed (eg by ``sudo apt-get install swig``). So, for the moment, **Melody Scripter**
   has the same limitations, and it is only tested to run on Python 2.7.
 
-* `--process-dependency-links` is currently required because the **midi 0.2.3** dependency is not
+* ``--process-dependency-links`` is currently required because the **midi 0.2.3** dependency is not
   directly downloadable from Pypi.
 
 * To install a specific tagged release, eg **0.0.5**, replace 'master' in the URL above with the tag.
