@@ -16,7 +16,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.6',
+    version='0.0.7',
 
     description='Melody Scripter, for parsing melodies from a simple textual format',
     long_description=long_description,
@@ -97,8 +97,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'song2midi=melody_script.song2midi:main',
-            'play_song=melody_script.play_song:main',
+            'song2midi=melody_scripter.song2midi:main',
+            'play_song=melody_scripter.play_song:main',
         ],
     },
 )
