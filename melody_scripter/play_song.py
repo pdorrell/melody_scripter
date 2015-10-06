@@ -25,11 +25,11 @@ class MidiTrack(object):
         self.initial_delay_subticks = midi_song.initial_delay_subticks
             
     def set_tempo_bpm(self, time, tempo):
-        print(" %s setting tempo at %s to %s bpm" % (self.id, time, tempo))
+        #print(" %s setting tempo at %s to %s bpm" % (self.id, time, tempo))
         self.midi_data_track.append(midi.SetTempoEvent(tick = time, bpm = tempo))
         
     def add_note(self, midi_note, time, duration):
-        print(" %s playing note %s at time %s, %s ticks" % (self.id, midi_note, time, duration))
+        #print(" %s playing note %s at time %s, %s ticks" % (self.id, midi_note, time, duration))
         start_time = self.groove.get_subticks(time) + self.initial_delay_subticks
         self.midi_data_track.append(midi.NoteOnEvent(tick = start_time, channel = self.channel_number, 
                                                      pitch = midi_note, velocity = self.volume))
@@ -38,7 +38,7 @@ class MidiTrack(object):
                                                       pitch = midi_note))
         
     def add_notes(self, midi_notes, time, duration):
-        print(" %s playing notes %r at time %s, %s ticks" % (self.id, midi_notes, time, duration))
+        #print(" %s playing notes %r at time %s, %s ticks" % (self.id, midi_notes, time, duration))
         start_time = self.groove.get_subticks(time) + self.initial_delay_subticks
         for midi_note in midi_notes:
             self.midi_data_track.append(midi.NoteOnEvent(tick = start_time, channel = self.channel_number, 
@@ -49,7 +49,7 @@ class MidiTrack(object):
                                                           pitch = midi_note))
         
     def set_instrument(self, time, instrument_number):
-        print(" %s set instrument at %s to %s" % (self.id, time, instrument_number))
+        #print(" %s set instrument at %s to %s" % (self.id, time, instrument_number))
         self.midi_data_track.append(midi.ProgramChangeEvent(channel = self.channel_number, 
                                                             tick = time, value = instrument_number))
 
@@ -84,9 +84,9 @@ class MidiSong(object):
         return midi_track
 
     def write_midi_file(self, file_name):
-        print("Rendering midi data...")
+        #print("Rendering midi data...")
         self.render()
-        print("Writing music to %s ..." % file_name)
+        print("Writing midi to %s ..." % file_name)
         midi.write_midifile(file_name, self.midi_data)
         
 def play_midi_file_with_cvlc(file_name):
@@ -99,9 +99,9 @@ def play_midi_file_with_cvlc(file_name):
 def play_midi_file_with_timidity(file_name):
     subprocess.call(['/usr/bin/timidity', '--output-24bit', file_name])
     
-def dump_midifile(file_name):
+def dump_midi_file(file_name):
     pattern = midi.read_midifile(file_name)
-    print repr(pattern)
+    return repr(pattern)
     
 def compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0):
     song = Song.parse(FileToParse(song_file_path))
@@ -119,7 +119,7 @@ def play_song(song_file_path = None):
         compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0.2)
         play_midi_file_with_cvlc(midi_file_name)
         #play_midi_file_with_timidity(midi_file_name)
-#        dump_midifile(midi_file_name)
+#        dump_midi_file(midi_file_name)
     except ParseException, pe:
         pe.show_error()
     

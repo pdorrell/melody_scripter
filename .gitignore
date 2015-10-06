@@ -46,3 +46,5 @@ docs/_build/
 
 # .mp3 files
 *.mp3
+
+tests/regression/output/
