@@ -16,7 +16,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.4',
+    version='0.0.5',
 
     description='Melody Scripter, for parsing melodies from a simple textual format',
     long_description=long_description,
@@ -65,7 +65,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['regex>=2015.09.15', 
-                      'midi>=0.2.3'],
+                      'midi==0.2.3'],
 
     dependency_links=[
         "https://github.com/vishnubob/python-midi/archive/v0.2.3.zip#egg=midi-0.2.3"
