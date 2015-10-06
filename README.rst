@@ -1,12 +1,15 @@
 .. |--| unicode:: U+2013   .. en dash
 
-Melody Scripter
-===============
+Melody Scripter and MelodyScript
+================================
 
-**Melody Scripter** is a Python application which parses melody files written
-in an easy-to-write textual format into an Python Song object model.
+**MelodyScript** is a melody-oriented DSL for describing melodies, which
+can be optionally annotated with chords.
 
-Here is "Yankee Doodle" in **Melody Scripter** format::
+**Melody Scripter** parses a **MelodyScript** file into a Python **Song** object
+model, which can be used to generate a Midi file.
+
+Here is "Yankee Doodle" in MelodyScript::
 
   *song:      tempo_bpm=200, beats_per_bar=4, ticks_per_beat=4
   
@@ -19,7 +22,7 @@ Here is "Yankee Doodle" in **Melody Scripter** format::
   [F] a. bh a1 g | [F] a b c2 | [C] g. ah g1 f | [C] e2 g2 |
   [F] a. bh a1 g | [F] a b c a | [G7] g c b d | [C] c2 c1 r1
 
-For the purposes of **Melody Scripter**, a "melody" consists of a sequence
+In MelodyScript, a "melody" consists of a sequence
 of notes on the standard Western musical scale, together with bar lines
 (which must match the specified time signature) and chords, with optional
 bass notes where different from the chord root note.
@@ -32,11 +35,10 @@ Currently Midi output is the only functionality provided by the Song object mode
 but the object model would also provide a convenient representation of melody information
 for the purposes of scientific analysis.
 
-Melody Scripter File Format
-===========================
+MelodyScript Syntax
+===================
 
-The Melody Script file format is line-oriented. Currently there are two types
-of input lines:
+MelodyScript is line-oriented. There are two types of lines:
 
 * **Command** lines. Any line starting with the character ``*`` (with possibly
   preceding whitespace) is parsed as a command line.
@@ -114,7 +116,7 @@ range from 0 to 127, and the actual sounds depend on the SoundFont used to play 
 although there is a standard **GM** set of Midi instruments definitions (where the default of **0** 
 corresponds to Acoustic Grand Piano).
 
-Currently Melody Scripter does not have any provision for per-note volume (velocity) specification. In
+Currently MelodyScript does not have any provision for per-note volume (velocity) specification. In
 practice there is no easy way to determine appropriate volume values, for example when typing in from
 sheet music. For playback it is recommended to choose suitable instrument sounds that work well with 
 constant volume (for example see choices made in the sample song files in this project).
@@ -187,7 +189,7 @@ To-be-continued marker:
   If provided, specified as ``~``. This indicates that a note will be continued
   by the next note.
 
-Except for the very first note, Melody Scripter does not provide for each note to
+Except for the very first note, MelodyScript does not provide for each note to
 specify its octave. Instead, pitch values are specified relative to the previous note.
 If no "up" or "down" markers are specified, the rule is to always choose the closest
 possibility. If this choice is ambiguous, eg when going from ``f`` to ``b`` or vice versa, then an error occurs.

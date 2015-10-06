@@ -22,7 +22,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://whatismusic.info/melody_scripter',
+    url='https://github.com/pdorrell/melody_scripter', 
 
     # Author details
     author='Philip Dorrell',
