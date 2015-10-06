@@ -109,10 +109,7 @@ def compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0):
     midi_song.write_midi_file(midi_file_name)
     
 
-def play_song(song_file_path = None):
-    if song_file_path is None:
-        song_file_name = 'canon_riff.song'
-        song_file_path = os.path.join(os.path.dirname(__file__),'..', 'data', 'songs', song_file_name)
+def play_song(song_file_path):
     midi_file_name = "%s.mid" % song_file_path
     print("Playing song %s into %s ..." % (song_file_path, midi_file_name))
     try:
@@ -124,13 +121,10 @@ def play_song(song_file_path = None):
         pe.show_error()
     
 def main():
-    args = sys.argv
-    if len(args) == 1:
-        play_song()
-    elif len(args) == 2:
-        play_song(args[1])
-    else:
-        raise Exception("Useage: %s [song_file]" % args[0])
+    # Play a sample song
+    song_file_name = 'canon_riff.song'
+    song_file_path = os.path.join(os.path.dirname(__file__),'..', 'data', 'songs', song_file_name)
+    play_song(song_file_path)
 
 if __name__ == "__main__":
     main()
