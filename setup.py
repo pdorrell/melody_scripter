@@ -67,6 +67,10 @@ setup(
     install_requires=['regex>=2015.09.15', 
                       'midi>=0.2.3'],
 
+    dependency_links=[
+        "https://github.com/vishnubob/python-midi/archive/v0.2.3.zip"
+    ], 
+    
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
     # for example:
