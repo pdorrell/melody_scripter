@@ -402,7 +402,7 @@ class TestGroove(ParserTestCase):
         self.assertEquals(command, GrooveCommand(delays = [0, 3]))
         
         region = as_region('groove: 0 wrong 3')
-        with self.parse_exception("Extra data when parsing: 'wrong 3'", "wrong 3"):
+        with self.parse_exception("Invalid groove delay: 'wrong'", "wrong 3"):
             command = SongCommand.parse(region)
         
         
