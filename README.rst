@@ -267,16 +267,45 @@ is useful when editing, when you want to play part of the song without starting 
 (There would not normally be any reason to include a Cut in a completed song.)
 
 
-Playback
-========
+Compilation and Playback
+========================
 
-The ``main()`` method of ``play_song.py`` generates a Midi file from the Song file whose name is
-given as the first argument. After generating the Midi file, this method also plays it using 
-the ``/usr/bin/cvlc`` command, if that command is available. **cvlc** is the command line version of VLC, 
-as installed on an Linux system, and it only plays Midi files if the **vlc-plugin-fluidsynth** VLC plugin is installed.
+The ``main()`` method of ``song2midi.py`` takes one argument which is the name of a MelodyScript file,
+and compiles it into a Midi file, using the name of the input file with ``.mid`` appended. This Python
+module is also made available as a console script **song2midi** when MelodyScripter is installed
+into a Python environment.
 
-(An alternative playback option on Linux is **timidity**, however even with the ``--output-24bit``
-option, on my system, the sound quality is poor at the beginning of the song.)
+For example::
+
+  > song2midi yankee_doodle.song
+
+  Compiling song file yankee_doodle.song to yankee_doodle.song.mid ...
+  Writing midi to yankee_doodle.song.mid ...
+  Successfully wrote midi file yankee_doodle.song.mid.
+
+
+The ``main()`` method of ``play_song.py`` generates the same Midi file as ``song2midi.py`` and,
+after generating the Midi file, plays it using the ``/usr/bin/cvlc`` command, if that command is available. 
+**cvlc** is the command line version of VLC, as installed on an Linux system, and it only plays Midi files 
+if the **vlc-plugin-fluidsynth** VLC plugin is installed. This module is also available as the **play_song**
+console script.
+
+For example::
+
+  > play_song yankee_doodle.song
+
+  Playing song yankee_doodle.song (after compiling to yankee_doodle.song.mid) ...
+  Writing midi to yankee_doodle.song.mid ...
+  Playing midi file yankee_doodle.song.mid with cvlc ...
+  VLC media player 2.1.6 Rincewind (revision 2.1.6-0-gea01d28)
+  [0x89f45a0] dummy interface: using the dummy interface module...
+  fluidsynth: warning: Failed to pin the sample data to RAM; swapping is possible.
+
+(Console output from **cvlc** and the fluidsynth plug-in may be different on your system.)
+
+An alternative playback option on Linux is **timidity**, however even with the ``--output-24bit``
+option, on my system, the sound quality is poor at the beginning of the song.
+
 
 Limitations and Installation Issues
 ===================================
