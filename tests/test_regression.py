@@ -2,7 +2,7 @@ import unittest
 import os
 
 from melody_scripter import song_parser
-from melody_scripter.play_song import compile_to_midi, dump_midi_file
+from melody_scripter.midi_song import compile_to_midi, dump_midi_file
 
 class RegressionTests(unittest.TestCase):
     

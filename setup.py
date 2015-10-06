@@ -97,6 +97,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
+            'song2midi=melody_script.song2midi:main',
             'play_song=melody_script.play_song:main',
         ],
     },
