@@ -98,6 +98,16 @@ def play_midi_file_with_cvlc(file_name):
     
 def play_midi_file_with_timidity(file_name):
     subprocess.call(['/usr/bin/timidity', '--output-24bit', file_name])
+    
+def dump_midifile(file_name):
+    pattern = midi.read_midifile(file_name)
+    print repr(pattern)
+    
+def compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0):
+    song = Song.parse(FileToParse(song_file_path))
+    midi_song = MidiSong(song, initial_delay_seconds = initial_delay_seconds)
+    midi_song.write_midi_file(midi_file_name)
+    
 
 def play_song(song_file_path = None):
     if song_file_path is None:
@@ -106,11 +116,10 @@ def play_song(song_file_path = None):
     midi_file_name = "%s.mid" % song_file_path
     print("Playing song %s into %s ..." % (song_file_path, midi_file_name))
     try:
-        song = Song.parse(FileToParse(song_file_path))
-        midi_song = MidiSong(song, initial_delay_seconds = 0.2)
-        midi_song.write_midi_file(midi_file_name)
+        compile_to_midi(song_file_path, midi_file_name, initial_delay_seconds = 0.2)
         play_midi_file_with_cvlc(midi_file_name)
         #play_midi_file_with_timidity(midi_file_name)
+#        dump_midifile(midi_file_name)
     except ParseException, pe:
         pe.show_error()
     
