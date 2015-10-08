@@ -175,16 +175,30 @@ Note letter:
 Sharp or flat:
   Represented by ``+`` or ``-``, and only one is allowed.
 Duration:
-  The note duration is specified as a number of beats, with optional qualifiers.
-  The default number of beats is 1, for the first note in the song and the first note
-  in each bar. Possible qualifiers are ``h`` and ``q``, which can both occur zero or
-  more times, and which represent a halfing and quartering of length in each case;
-  ``t``, (for triplet), which divides the note length by three; and ``.`` which multiples
-  the note length by 1.5. ``t`` and ``.`` can only occur once. Any note duration must
+  If note duration is not specified, then it is given a default value. For the first
+  note in the melody, and the first note in each bar, the default duration is 1 beat.
+  For all other notes, the default duration is the duration of the previous note.
+  If a duration is specified, then the specification consists of the following
+  components:
+
+  * The initial number of beats (if not given, this defaults to 1).
+
+  * ``h`` or ``q`` qualifiers, possibly repeated, which multiply the duration
+    by a half or a quarter respectively.
+
+  * ``t`` qualifier (at most once), which multiplies the duration by a third
+
+  * ``.`` qualifier (at most once) which multiplies the duration by 3/2
+
+  At least one component must be given, otherwise the previously described default
+  value applies.
+
+  Any note duration must
   be a whole number of ticks, and an error will occur if a note length is defined
   which is a fractional number of ticks. (In such a case, if the note length is
   correct, you will need to increase or change the specified ``ticks_per_beat``
   song property.)
+
 To-be-continued marker:
   If provided, specified as ``~``. This indicates that a note will be continued
   by the next note.
