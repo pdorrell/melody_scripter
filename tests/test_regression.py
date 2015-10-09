@@ -2,6 +2,7 @@ import unittest
 import os
 
 from melody_scripter import song_parser
+from melody_scripter.song_parser import ParseException
 from melody_scripter.midi_song import compile_to_midi, dump_midi_file
 
 class RegressionTests(unittest.TestCase):
@@ -31,7 +32,11 @@ class RegressionTests(unittest.TestCase):
         output_midi_dump_file_name = output_midi_file_name + ".dump"
         if os.path.isfile(output_midi_file_name):
             os.remove(output_midi_file_name)
-        compile_to_midi(song_file_name, output_midi_file_name)
+        try:
+            compile_to_midi(song_file_name, output_midi_file_name)
+        except ParseException, pe:
+            pe.show_error()
+            raise
         self._dump_midi_file(output_midi_file_name, output_midi_dump_file_name)
         output_midi = self._read_binary_file(output_midi_file_name)
         if os.path.isfile(expected_midi_file_name):

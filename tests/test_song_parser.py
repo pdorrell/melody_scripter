@@ -165,7 +165,7 @@ class TestNote(ParserTestCase):
         
         
     def test_note_parse_exception(self):
-        with self.parse_exception("Invalid note: 'a+\'3qmexico' (extra data 'mexico')", 
+        with self.parse_exception('Invalid note: "a+\'3qmexico" (extra data "mexico")', 
                                   "mexico"):
             region = as_region('a+\'3qmexico')
             Note.parse(region)
@@ -184,13 +184,13 @@ class TestBarLine(ParserTestCase):
         self.assertEquals(bar_line, BarLine())
         
     def test_bar_line_parse(self):
-        with self.parse_exception("Invalid bar line: '|extra' (extra data 'extra')", 
+        with self.parse_exception('Invalid bar line: "|extra" (extra data "extra")', 
                                   'extra'):
             region = as_region('|extra')
             BarLine.parse(region)
         
     def test_bar_line_parse_wrong(self):
-        with self.parse_exception("Invalid bar line: 'wrong'", 'wrong'):
+        with self.parse_exception('Invalid bar line: "wrong"', 'wrong'):
             region = as_region('wrong')
             BarLine.parse(region)
         
@@ -313,7 +313,7 @@ class TestSongItemParser(ParserTestCase):
             SongItem.parse(as_region('wrong'))
         
     def test_invalid_song_item_starts_like_note(self):
-        with self.parse_exception("Invalid note: 'a\'wrong'", 'a\'wrong'):
+        with self.parse_exception('Invalid note: "a\'wrong" (extra data "wrong")', 'wrong'):
             SongItem.parse(as_region('a\'wrong'))
         
     def test_song_item_parse_regions(self):
@@ -409,7 +409,7 @@ class TestGroove(ParserTestCase):
         self.assertEquals(command, GrooveCommand(delays = [0, 3]))
         
         region = as_region('groove: 0 wrong 3')
-        with self.parse_exception("Invalid groove delay: 'wrong'", "wrong 3"):
+        with self.parse_exception('Invalid groove delay: "wrong"', "wrong 3"):
             command = SongCommand.parse(region)
         
         

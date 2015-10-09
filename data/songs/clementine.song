@@ -3,6 +3,6 @@
 *track.chord: instrument =40, volume=50,octave=3
 *track.bass: instrument=19, volume=100, octave=2
 
-ch. cq | [C] c g ^eh. eq | [C] e c ch. eq | [C] g. gh f e | [G7] d2 
+ch. cq | [C] c g e'h. eq | [C] e c ch. eq | [C] g. gh f e | [G7] d2 
 
-dh. eq | [F] f f eh. dq | [C] e c ch. eq | [G7] d. Vgh bh. dq | [C] c2 
+dh. eq | [F] f f eh. dq | [C] e c ch. eq | [G7] d. g,h bh. dq | [C] c2 

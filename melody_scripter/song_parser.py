@@ -160,11 +160,11 @@ class ParseableFromRegex(Parseable):
         try:
             region.parse(cls.parse_regex)
         except ParseLeftOverException, pleo:
-            raise ParseException('Invalid %s: %r (extra data %r)' 
+            raise ParseException('Invalid %s: "%s" (extra data "%s")' 
                                  % (cls.description, region.value, pleo.location.value), 
                                  pleo.location)
         except RegexFailedToMatch, rftm:
-            raise ParseException('Invalid %s: %r' % (cls.description, region.value), region)
+            raise ParseException('Invalid %s: "%s"' % (cls.description, region.value), region)
         parsed_instance = cls.parse_from_matched_region(region)
         parsed_instance.source = region
         return parsed_instance
@@ -515,13 +515,13 @@ class Note(ParseableFromRegex):
         self.midi_note = valid_midi_note(find_next_note(last_note.midi_note, self.semitone_offset, self.ups, location = self.source))
         
     CONTINUED_MATCHER = r'(?P<continued>[~])?'
-    UPS_OR_DOWNS_MATCHER = r'((?P<ups>\^+)|(?P<downs>V+)|)'
+    UPS_OR_DOWNS_MATCHER = r'((?P<ups>\'+)|(?P<downs>,+)|)'
     NOTE_NAME_MATCHER = r'(?P<note>[a-g][+-]?)'
     REST_MATCHER = r'(?P<rest>r)'
     DURATION_MATCHER = r'(?P<beats>[1-9][0-9]*)?(?P<hqs>[hq]+)?(?P<triplet>t)?(?P<dot>[.])?'
     TO_CONTINUE_MATCHER = r'(?P<to_continue>[~])?'
-    NOTE_COMMAND_MATCHER = '%s%s(%s|%s)%s%s' % (CONTINUED_MATCHER, UPS_OR_DOWNS_MATCHER, REST_MATCHER, 
-                                                NOTE_NAME_MATCHER, DURATION_MATCHER, TO_CONTINUE_MATCHER)
+    NOTE_COMMAND_MATCHER = '%s(%s|%s%s)%s%s' % (CONTINUED_MATCHER, REST_MATCHER, 
+                                                NOTE_NAME_MATCHER, UPS_OR_DOWNS_MATCHER, DURATION_MATCHER, TO_CONTINUE_MATCHER)
     parse_regex = regex.compile(NOTE_COMMAND_MATCHER)
     
     def as_data(self):
@@ -583,7 +583,7 @@ class Note(ParseableFromRegex):
             return Note(note, sharps, ups, duration, to_continue = to_continue, continued = continued)
         
     def unparse(self):
-        ups_string = "^" * self.ups if self.ups > 0 else "V" * -self.ups
+        ups_string = "'" * self.ups if self.ups > 0 else "," * -self.ups
         letter_string = "r" if self.note is None else NOTE_NAMES_LOWER_CASE[self.note]
         sharps_string = "+" * self.sharps if self.sharps > 0 else "-" * -self.sharps
         x, y = self.duration
@@ -602,7 +602,7 @@ class Note(ParseableFromRegex):
                 y = y/2
             if y == old_y and y > 1:
                 raise Exception("Can't notate duration quotient %s" % y)
-        return ups_string + letter_string + sharps_string + duration_string
+        return letter_string + sharps_string + ups_string + duration_string
     
 class ParseFromChoices(object):
 
