@@ -144,12 +144,12 @@ class TestNote(ParserTestCase):
         
     def test_note_unparse(self):
         note1 = Note(0, 1, 1, (3, 4))
-        self.assertEquals(note1.unparse(), '^c+3q')
+        self.assertEquals(note1.unparse(), 'c+\'3q')
         note1 = Note(0, 1, -1, (3, 4))
-        self.assertEquals(note1.unparse(), 'Vc+3q')
+        self.assertEquals(note1.unparse(), 'c+,3q')
         
     def test_note_parse(self):
-        region = as_region('^a+3q')
+        region = as_region('a+\'3q')
         note = Note.parse(region)
         self.assertEquals(note.source, region)
         self.assertEquals(note, Note(5, 1, 1, (3, 4)))
@@ -159,15 +159,15 @@ class TestNote(ParserTestCase):
         self.assertEquals(note.source, region)
         self.assertEquals(note, Note(5))
         
-        region = as_region('Va+3q')
+        region = as_region('a+,3q')
         note = Note.parse(region)
         self.assertEquals(note, Note(5, 1, -1, (3, 4)))
         
         
     def test_note_parse_exception(self):
-        with self.parse_exception("Invalid note: '^a+3qmexico' (extra data 'mexico')", 
+        with self.parse_exception("Invalid note: 'a+\'3qmexico' (extra data 'mexico')", 
                                   "mexico"):
-            region = as_region('^a+3qmexico')
+            region = as_region('a+\'3qmexico')
             Note.parse(region)
         
 class TestBarLine(ParserTestCase):
@@ -291,9 +291,9 @@ class TestSongItemParser(ParserTestCase):
         self.assertEquals(parsed_item, parsed_tie)
         
     def test_parse_note_song_item(self):
-        region = as_region('^a+3q')
+        region = as_region('a+\'3q')
         parsed_item = SongItem.parse(region)
-        region = as_region('^a+3q')
+        region = as_region('a+\'3q')
         parsed_note = Note.parse(region)
         self.assertEquals(parsed_item, parsed_note)
         
@@ -313,8 +313,8 @@ class TestSongItemParser(ParserTestCase):
             SongItem.parse(as_region('wrong'))
         
     def test_invalid_song_item_starts_like_note(self):
-        with self.parse_exception("Invalid note: '^wrong'", '^wrong'):
-            SongItem.parse(as_region('^wrong'))
+        with self.parse_exception("Invalid note: 'a\'wrong'", 'a\'wrong'):
+            SongItem.parse(as_region('a\'wrong'))
         
     def test_song_item_parse_regions(self):
         region = as_region(' [C] c e e c | [G] ')
