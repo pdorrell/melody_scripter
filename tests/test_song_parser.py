@@ -145,6 +145,8 @@ class TestNote(ParserTestCase):
     def test_note_unparse(self):
         note1 = Note(0, 1, 1, (3, 4))
         self.assertEquals(note1.unparse(), '^c+3q')
+        note1 = Note(0, 1, -1, (3, 4))
+        self.assertEquals(note1.unparse(), 'Vc+3q')
         
     def test_note_parse(self):
         region = as_region('^a+3q')
@@ -156,6 +158,11 @@ class TestNote(ParserTestCase):
         note = Note.parse(region)
         self.assertEquals(note.source, region)
         self.assertEquals(note, Note(5))
+        
+        region = as_region('Va+3q')
+        note = Note.parse(region)
+        self.assertEquals(note, Note(5, 1, -1, (3, 4)))
+        
         
     def test_note_parse_exception(self):
         with self.parse_exception("Invalid note: '^a+3qmexico' (extra data 'mexico')", 
