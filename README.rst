@@ -17,7 +17,7 @@ Here is "Yankee Doodle" in MelodyScript::
   *track.chord:  instrument=40, volume= 50, octave=3
   *track.bass:   instrument=19, volume=100, octave=2
   
-  [C] c c d e | [C] c e [G7] d Vg | [C] c c d e | [C] c2 [G7] b |
+  [C] c c d e | [C] c e [G7] d g, | [C] c c d e | [C] c2 [G7] b |
   [C] c c d e | [F] f e d c | [G7] b g a b | [C] c2 c1 [] r1 |
   [F] a. bh a1 g | [F] a b c2 | [C] g. ah g1 f | [C] e2 g2 |
   [F] a. bh a1 g | [F] a b c a | [G7] g c b d | [C] c2 c1 r1
@@ -167,13 +167,13 @@ The components of a note are, in order:
 Continued marker:
   If provided, specified as ``~``. This indicates that a note is a continuation
   of the previous note.
-Ups or downs:
-  If provided, specified as one or more ``^`` for up, or one or more ``V`` for down.
 Note letter:
   A lower case letter from ``a`` to ``g``. For the purposes of defining an octave,
   the octave starts at ``c`` (this is a standard convention).
 Sharp or flat:
   Represented by ``+`` or ``-``, and only one is allowed.
+Ups or downs:
+  If provided, specified as one or more ``'`` for up, or one or more ``,`` for down.
 Duration:
   If note duration is not specified, then it is given a default value. For the first
   note in the melody, and the first note in each bar, the default duration is 1 beat.
@@ -214,9 +214,15 @@ or below the previous note, respectively. If more than one up or down marker is 
 then go an extra octave up or down for each extra marker.
 
 So, for example, ``c`` followed by ``e`` means go up to the next E, and ``c`` followed
-by ``^e`` *also* means go up to the next E. Whereas ``^^e`` means go up 9 notes to the E
-above that, ``Ve`` means go down to the first E below, and ``VVe`` means go to the E
+by ``e'`` *also* means go up to the next E. Whereas ``e''`` means go up 9 notes to the E
+above that, ``e,`` means go down to the first E below, and ``e,,`` means go to the E
 below that one.
+
+(The up and down markers are the same as used in LilyPond in relative mode, however the rule of
+interpretation is different |--| in MelodyScript one ``'`` always means the next note up
+from the previous note, and similarly with ``,``. Also, in MelodyScript the rule applies to
+the actual semitone values of the previous and current notes as specified by letter and 
+optional sharps or flats.)
 
 Ties, and Note Continuations
 ----------------------------
