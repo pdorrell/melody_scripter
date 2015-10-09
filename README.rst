@@ -172,7 +172,7 @@ Note letter:
   the octave starts at ``c`` (this is a standard convention).
 Sharp or flat:
   Represented by ``+`` or ``-``, and only one is allowed.
-Ups or downs:
+Ups or downs (octave adjustments):
   If provided, specified as one or more ``'`` for up, or one or more ``,`` for down.
 Duration:
   If note duration is not specified, then it is given a default value. For the first
@@ -220,9 +220,10 @@ below that one.
 
 (The up and down markers are the same as used in LilyPond in relative mode, however the rule of
 interpretation is different |--| in MelodyScript one ``'`` always means the next note up
-from the previous note, and similarly with ``,``. Also, in MelodyScript the rule applies to
-the actual semitone values of the previous and current notes as specified by letter and 
-optional sharps or flats.)
+from the previous note, and similarly one ``,`` means the next note down. 
+Also, in MelodyScript the rule defines "closest" based on the the actual semitone values of 
+the previous and current notes as specified by letter and optional sharps or flats, whereas
+LilyPond applies a rule that ignores sharps and flats.)
 
 Ties, and Note Continuations
 ----------------------------
