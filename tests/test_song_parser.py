@@ -28,6 +28,8 @@ class ParserTestCase(unittest.TestCase):
             self.fail('No ParseException')
         except ParseException, pe:
             self.assertEquals(pe.message, message)
+            if pe.location is None:
+                self.fail('ParseException %r has no location given' % pe.message)
             self.assertEquals(pe.location.rest_of_line()[0:len(looking_at)], looking_at)
             
     def assertEqualsDisplaying(self, x, y):
@@ -545,4 +547,16 @@ class TestSongParser(ParserTestCase):
         song = self._verify_durations('| b b b c~ | ~c e2 e1 |', [1, 1, 1, 2, 2, 1])
         song = self._verify_durations('| b ~ b b c | c e2 ~ e1 |', [2, 1, 1, 1, 3])
         song = self._verify_durations('| b ~ b b c | ~ c e2~ ~e1 |', [2, 1, 2, 3])
+    
+    def test_note_too_high(self):
+        song_lines = """*track.melody: octave = 5\n c c' c' c' | c' d d' e'"""
+        parse_string = StringToParse('test_string', song_lines)
+        with self.parse_exception('Note number 134 > 127', "d' e'"):
+            song = Song.parse(parse_string)
+        
+    def test_note_too_low(self):
+        song_lines = """*track.melody: octave = 4\n c c, c, c, | c, d, e, f, """
+        parse_string = StringToParse('test_string', song_lines)
+        with self.parse_exception('Note number -8 < 0', "e, f, "):
+            song = Song.parse(parse_string)
     

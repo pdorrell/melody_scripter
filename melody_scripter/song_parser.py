@@ -1,4 +1,5 @@
 import subprocess, os, regex, sys
+from contextlib import contextmanager
 
 DIATONIC_OFFSETS = [0, 2, 4, 5, 7, 9, 11]
 
@@ -29,12 +30,23 @@ def valid_midi_note(midi_note):
         raise ParseException('Note number %s > 127' % midi_note)
     return midi_note
 
+@contextmanager
+def parse_source(source):
+    try:
+        yield
+    except ParseException, pe:
+        if pe.location is None:
+            pe.location = source
+        raise pe
+
 class ParseException(Exception):
-    def __init__(self, message, location):
+    def __init__(self, message, location = None):
         super(Exception, self).__init__(message)
         self.location = location
         
     def show_error(self):
+        if self.location:
+            raise Exception('No location given for ParseException (with message %s)' % self.message)
         self.location.show_error(self.message)
         
 class ParseLeftOverException(ParseException):
@@ -1065,8 +1077,9 @@ class Song(Parseable):
         if item.__class__ == Cut:
             self.clear_items()
         else:
-            item.resolve(self)
-            self.items.append(item)
+            with parse_source(item.source):
+                item.resolve(self)
+                self.items.append(item)
         
     def check_last_part_bar(self):
         part_bar_ticks = self.tick if self.last_bar_tick is None else self.tick - self.last_bar_tick
