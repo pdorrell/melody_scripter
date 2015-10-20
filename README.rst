@@ -11,7 +11,7 @@ model, which can be used to generate a Midi file.
 
 Here is "Yankee Doodle" in MelodyScript::
 
-  *song:      tempo_bpm=200, beats_per_bar=4, ticks_per_beat=4
+  *song:      tempo_bpm=200, time_signature=4/4, ticks_per_beat=4
   
   *track.melody: instrument=73, volume=120, octave=5
   *track.chord:  instrument=40, volume= 50, octave=3
@@ -67,24 +67,28 @@ Song Property Settings
 
 Available property settings for the ``song`` command are:
 
-+-------------------+--------------------------------------+------------+--------------+
-| key               | value                                | default    | valid values |
-+===================+======================================+============+==============+
-| tempo_bpm         | Tempo in beats per minute            | 120        | 1 to 1000    |
-+-------------------+--------------------------------------+------------+--------------+
-| beats_per_bar     | Beats per bar                        | 4          | 1 to 32      |
-+-------------------+--------------------------------------+------------+--------------+
-| ticks_per_beat    | Ticks per beat                       | 4          | 1 to 2000    |
-+-------------------+--------------------------------------+------------+--------------+
-| subticks_per_tick | Ticks per beat                       | 1          | 1 to 100     |
-+-------------------+--------------------------------------+------------+--------------+
++-------------------+--------------------------------------+------------+----------------------------------+
+| key               | value                                | default    | valid values                     |
++===================+======================================+============+==================================+
+| tempo_bpm         | Tempo in beats per minute            | 120        | 1 to 1000                        |
++-------------------+--------------------------------------+------------+----------------------------------+
+| time_signature    | Example: 3/4                         | 4/4        | Any integer / (1,2,4,8,16 or 32) |
++-------------------+--------------------------------------+------------+----------------------------------+
+| ticks_per_beat    | Ticks per beat                       | 4          | 1 to 2000                        |
++-------------------+--------------------------------------+------------+----------------------------------+
+| subticks_per_tick | Ticks per beat                       | 1          | 1 to 100                         |
++-------------------+--------------------------------------+------------+----------------------------------+
 
 The ``tempo_bpm`` and ``ticks_per_beat`` values both determine corresponding values when
 a Midi file is generated. "Ticks" are the unit of time in the song, and every note
 or rest length must be a whole number of ticks |--| if not, an error occurs.
 
-The ``beats_per_bar`` value defines the required length of each complete bar. It has no effect on Midi
-output, but if the contents of a bar do not have the correct total length, it's an error.
+The ``time_signature`` is the standard time signature used to describe a bar, when a **numerator** that 
+specifies the number of *beats* per bar, and a **denominator** that specifies the length of one beat as a 
+function of a whole note. (To keep things simple, the ``ticks_per_beat`` value must be defined so that
+one crotchet contains a whole number of ticks.)
+
+If the contents of a bar do not have the correct total length, it's an error.
 (It's OK to have partial bars at the start and end of the song.)
 
 The ``subticks_per_tick`` command is only relevant to the ``groove`` command, and it determines
@@ -176,12 +180,13 @@ Ups or downs (octave adjustments):
   If provided, specified as one or more ``'`` for up, or one or more ``,`` for down.
 Duration:
   If note duration is not specified, then it is given a default value. For the first
-  note in the melody, and the first note in each bar, the default duration is 1 beat.
+  note in the melody, and the first note in each bar, the default duration is 1 crotchet
+  (ie one 'quarter note').
   For all other notes, the default duration is the duration of the previous note.
   If a duration is specified, then the specification consists of the following
   components:
 
-  * The initial number of beats (if not given, this defaults to 1).
+  * The initial number of crotchets (if not given, this defaults to 1).
 
   * ``h`` or ``q`` qualifiers, possibly repeated, which multiply the duration
     by a half or a quarter respectively.
@@ -252,7 +257,7 @@ A **Rest** consists of the letter ``r`` followed by a duration specification. Th
 specification for rests is very similar to that for notes, but there is no default
 duration, and at least one part of the duration specification must be given. If
 only qualifiers are given, then they are applied to a value of 1. So, for example,
-``rh`` is a valid rest, representing half a beat.
+``rh`` is a valid rest, representing half a crotchet, ie a quaver.
 
 Chords
 ------
@@ -278,7 +283,7 @@ Bar Lines
 
 **Bar Lines** are represented by ``|``. Bar lines are used to check that the total lengths of notes
 and rests in each bar have the correct values. They also reset the default note
-duration to 1 beat. Bar lines do not have any direct effect on Midi output.
+duration to 1 crotchet. Bar lines do not have any direct effect on Midi output.
 
 Cuts
 ----
