@@ -165,6 +165,15 @@ class TestNote(ParserTestCase):
         note = Note.parse(region)
         self.assertEquals(note, Note(5, 1, -1, (3, 4)))
         
+    def test_parse_rest(self):
+        region = as_region('r2.')
+        rest = SongItem.parse(region)
+        self.assertEquals(rest, Rest((6,2)))
+        
+    def test_parse_rest_no_duration(self):
+        region = as_region('r')
+        with self.parse_exception('Rest must specify duration', 'r'):
+            rest = SongItem.parse(region)
         
     def test_note_parse_exception(self):
         with self.parse_exception('Invalid note: "a+\'3qmexico" (extra data "mexico")', 

@@ -589,7 +589,7 @@ class Note(ParseableFromRegex):
         continued = group_dict['continued'] == '~'
         if note is None:
             if duration is None:
-                raise ParseException('Rest must specify duration', source)
+                raise ParseException('Rest must specify duration', region)
             return Rest(duration)
         else:
             return Note(note, sharps, ups, duration, to_continue = to_continue, continued = continued)
