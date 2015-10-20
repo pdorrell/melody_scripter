@@ -286,7 +286,7 @@ class ScaleNote(ParseableFromRegex):
                 scale_note.set_octave(int(octave_string))
             return scale_note
         else:
-            raise ParseException('Invalid scale note with octave: %r' % string, None)
+            raise ParseException('Invalid scale note with octave: %r' % string)
         
     def set_octave(self, octave):
         self.octave = octave
@@ -772,21 +772,21 @@ class SetSongTimeSignature(ValueSetter):
     value_parser = TimeSignatureParser()
     
     def resolve(self, song):
-        song.unplayed().set_time_signature(self.value, self.source)
+        song.unplayed().set_time_signature(self.value)
     
 class SetSongTicksPerBeat(ValueSetter):
     key = 'ticks_per_beat'
     value_parser = IntValueParser(1, 2000)
     
     def resolve(self, song):
-        song.unplayed().set_ticks_per_beat(self.value, self.source)
+        song.unplayed().set_ticks_per_beat(self.value)
     
 class SetSongSubTicksPerTick(ValueSetter):
     key = 'subticks_per_tick'
     value_parser = IntValueParser(1, 100)
     
     def resolve(self, song):
-        song.unplayed().set_subticks_per_tick(self.value, self.source)
+        song.unplayed().set_subticks_per_tick(self.value)
     
 class SongValuesCommand(ValuesCommand):
     
@@ -811,7 +811,8 @@ class SongValuesCommand(ValuesCommand):
     
     def resolve(self, song):
         for value in self.values:
-            value.resolve(song)
+            with parse_source(value.source):
+                value.resolve(song)
     
 
 class SetTrackInstrument(ValueSetter):
@@ -871,7 +872,8 @@ class TrackValuesCommand(ValuesCommand):
         if track is None:
             raise ParseException('Unknown track: %r' % self.name)
         for value in self.values:
-            value.resolve(track)
+            with parse_source(value.source):
+                value.resolve(track)
             
 class GrooveDelay(ParseableFromRegex):
     
@@ -1000,7 +1002,7 @@ class Song(Parseable):
         self.ticks_per_beat = 4
         self.subticks_per_tick = 1
         self.groove_delays = [0]
-        self.recalculate_tick_values(None)
+        self.recalculate_tick_values()
         self.playing = False # some command can only happen before it starts playing
         self.tempo_bpm = 120
         self.set_to_start()
@@ -1035,19 +1037,19 @@ class Song(Parseable):
         subticks_per_minute = self.tempo_bpm * self.ticks_per_beat * self.subticks_per_tick
         return subticks_per_minute/60.0
         
-    def set_ticks_per_beat(self, ticks_per_beat, source):
+    def set_ticks_per_beat(self, ticks_per_beat):
         self.ticks_per_beat = ticks_per_beat
-        self.recalculate_tick_values(source)
+        self.recalculate_tick_values()
         
-    def set_subticks_per_tick(self, subticks_per_tick, source):
+    def set_subticks_per_tick(self, subticks_per_tick):
         self.subticks_per_tick = subticks_per_tick
-        self.recalculate_tick_values(source)
+        self.recalculate_tick_values()
         
     def set_groove_delays(self, delays):
         self.groove_delays = delays
         self.set_groove()
         
-    def recalculate_tick_values(self, source):
+    def recalculate_tick_values(self):
         self.ticks_per_bar = self.beats_per_bar * self.ticks_per_beat
         if self.time_signature[1] >= 4:
             beats_per_crotchet = self.time_signature[1]/4
@@ -1056,14 +1058,13 @@ class Song(Parseable):
             crotchets_per_beat = 4/self.time_signature[1]
             if self.ticks_per_beat % crotchets_per_beat != 0:
                 raise ParseException('ticks per beat of %d has to be a multiple of crotchets per beat of %d' % 
-                                     (self.ticks_per_beat, crotchets_per_beat), 
-                                     source)
+                                     (self.ticks_per_beat, crotchets_per_beat))
             self.ticks_per_crotchet = self.ticks_per_beat / crotchets_per_beat
         self.set_groove()
         
-    def set_time_signature(self, time_signature, source):
+    def set_time_signature(self, time_signature):
         self.time_signature = time_signature
-        self.recalculate_tick_values(source)
+        self.recalculate_tick_values()
         
     def unplayed(self):
         if self.playing:
