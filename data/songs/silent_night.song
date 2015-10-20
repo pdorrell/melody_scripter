@@ -1,4 +1,4 @@
-*song:      tempo_bpm=110, beats_per_bar=3, ticks_per_beat=2, subticks_per_tick=4
+*song:      tempo_bpm=110, time_signature=3/4, ticks_per_beat=2, subticks_per_tick=4
 
 *groove: 0 1
 

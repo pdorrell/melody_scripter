@@ -401,10 +401,10 @@ class Chord(ParseableFromRegex):
 
 def resolve_duration(note_or_rest, song):
     x, y = note_or_rest.duration
-    if song.ticks_per_beat % y != 0:
-        raise ParseException('Duration %d/%d is not compatible with ticks per beat of %d' %
-                             (x, y, song.ticks_per_beat), note_or_rest.source)
-    note_or_rest.duration_ticks = x * (song.ticks_per_beat/y)
+    if song.ticks_per_crotchet % y != 0:
+        raise ParseException('Duration %d/%d is not compatible with ticks per crotchet of %d' %
+                             (x, y, song.ticks_per_crotchet), note_or_rest.source)
+    note_or_rest.duration_ticks = x * (song.ticks_per_crotchet/y)
     song.tick += note_or_rest.duration_ticks
     
 class Rest(ParseableFromRegex):
@@ -676,6 +676,16 @@ class IntValueParser(object):
         if value < self.min_value or value > self.max_value:
             self.raise_invalid_value_exception(label, value, value_region)
         return value
+    
+class TimeSignatureParser(object):
+    
+    parse_regex = regex.compile(r'(?P<numerator>[1-9][0-9]*)\s*[/](?P<denominator>2|4|8|16|32)')
+    
+    def parse(self, label, value_region):
+        value_region.parse(self.parse_regex)
+        numerator = int(value_region.match_groupdict['numerator'])
+        denominator = int(value_region.match_groupdict['denominator'])
+        return numerator, denominator
 
 class ValueSetter(Parseable):
     
@@ -745,33 +755,33 @@ class SetSongTempoBpm(ValueSetter):
     def resolve(self, song):
         song.unplayed().tempo_bpm = self.value
     
-class SetSongBeatsPerBar(ValueSetter):
-    key = 'beats_per_bar', 
-    value_parser = IntValueParser(1, 32)
+class SetSongTimeSignature(ValueSetter):
+    key = 'time_signature', 
+    value_parser = TimeSignatureParser()
     
     def resolve(self, song):
-        song.unplayed().set_beats_per_bar(self.value)
+        song.unplayed().set_time_signature(self.value, self.source)
     
 class SetSongTicksPerBeat(ValueSetter):
     key = 'ticks_per_beat'
     value_parser = IntValueParser(1, 2000)
     
     def resolve(self, song):
-        song.unplayed().set_ticks_per_beat(self.value)
+        song.unplayed().set_ticks_per_beat(self.value, self.source)
     
 class SetSongSubTicksPerTick(ValueSetter):
     key = 'subticks_per_tick'
     value_parser = IntValueParser(1, 100)
     
     def resolve(self, song):
-        song.unplayed().set_subticks_per_tick(self.value)
+        song.unplayed().set_subticks_per_tick(self.value, self.source)
     
 class SongValuesCommand(ValuesCommand):
     
     description = 'song'
 
     value_setters = dict(tempo_bpm = SetSongTempoBpm, 
-                         beats_per_bar = SetSongBeatsPerBar, 
+                         time_signature = SetSongTimeSignature, 
                          ticks_per_beat = SetSongTicksPerBeat, 
                          subticks_per_tick = SetSongSubTicksPerTick)
     
@@ -974,16 +984,20 @@ class Song(Parseable):
     def __init__(self, items = None):
         self.items = [] if items is None else items[:]
         
-        self.beats_per_bar = 4
+        self.time_signature = (4, 4)
         self.ticks_per_beat = 4
         self.subticks_per_tick = 1
         self.groove_delays = [0]
-        self.recalculate_tick_values()
+        self.recalculate_tick_values(None)
         self.playing = False # some command can only happen before it starts playing
         self.tempo_bpm = 120
         self.set_to_start()
         self.tracks = dict(melody = Track(self, octave = 3), chord = Track(self, octave = 1), 
                            bass = Track(self, octave = 0))
+    
+    @property
+    def beats_per_bar(self):
+        return self.time_signature[0]
         
     def set_groove(self):
         self.groove = Groove(self.beats_per_bar, self.ticks_per_beat, self.subticks_per_tick, 
@@ -1009,25 +1023,35 @@ class Song(Parseable):
         subticks_per_minute = self.tempo_bpm * self.ticks_per_beat * self.subticks_per_tick
         return subticks_per_minute/60.0
         
-    def set_ticks_per_beat(self, ticks_per_beat):
+    def set_ticks_per_beat(self, ticks_per_beat, source):
         self.ticks_per_beat = ticks_per_beat
-        self.recalculate_tick_values()
+        self.recalculate_tick_values(source)
         
-    def set_subticks_per_tick(self, subticks_per_tick):
+    def set_subticks_per_tick(self, subticks_per_tick, source):
         self.subticks_per_tick = subticks_per_tick
-        self.recalculate_tick_values()
+        self.recalculate_tick_values(source)
         
     def set_groove_delays(self, delays):
         self.groove_delays = delays
         self.set_groove()
         
-    def recalculate_tick_values(self):
+    def recalculate_tick_values(self, source):
         self.ticks_per_bar = self.beats_per_bar * self.ticks_per_beat
+        if self.time_signature[1] >= 4:
+            beats_per_crotchet = self.time_signature[1]/4
+            self.ticks_per_crotchet = self.ticks_per_beat * beats_per_crotchet
+        else:
+            crotchets_per_beat = 4/self.time_signature[1]
+            if self.ticks_per_beat % crotchets_per_beat != 0:
+                raise ParseException('ticks per beat of %d has to be a multiple of crotchets per beat of %d' % 
+                                     (self.ticks_per_beat, crotchets_per_beat), 
+                                     source)
+            self.ticks_per_crotchet = self.ticks_per_beat / crotchets_per_beat
         self.set_groove()
         
-    def set_beats_per_bar(self, beats_per_bar):
-        self.beats_per_bar = beats_per_bar
-        self.recalculate_tick_values()
+    def set_time_signature(self, time_signature, source):
+        self.time_signature = time_signature
+        self.recalculate_tick_values(source)
         
     def unplayed(self):
         if self.playing:
