@@ -262,6 +262,8 @@ class ScaleNote(ParseableFromRegex):
         self.semitone_offset = DIATONIC_OFFSETS[self.note] + self.sharps
         if octave:
             self.set_octave(octave)
+        else:
+            self.octave = None
         
     def set_sharps(self, sharps = 0):
         self.sharps = sharps
@@ -843,6 +845,8 @@ class SetSongScale(ValueSetter):
     value_parser = Scale
     
     def resolve(self, song):
+        if self.value.scale_note.octave is None:
+            self.value.scale_note.set_octave(song.tracks['melody'].octave)
         song.unplayed().scale = self.value
     
 class SetSongTicksPerBeat(ValueSetter):
