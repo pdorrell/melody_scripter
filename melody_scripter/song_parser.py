@@ -357,12 +357,16 @@ class Chord(ParseableFromRegex):
         self.bass_midi_note = self.get_bass_midi_note(bass_octave)
         
     def visit_midi_track(self, midi_track):
-        midi_track.add_notes(self.midi_notes, self.tick, self.duration_ticks)
+        midi_notes = self.midi_notes
+        if midi_track.transpose != 0:
+            with parse_source(self.source):
+                midi_notes = [valid_midi_note(midi_note+midi_track.transpose) for midi_note in midi_notes]
+        midi_track.add_notes(midi_notes, self.tick, self.duration_ticks)
         
     def finish(self, song):
         self.duration_ticks = song.tick - self.tick
         if self.bass_midi_note:
-            bass_track_note = BassNote(self.bass_midi_note, self.tick, self.duration_ticks)
+            bass_track_note = BassNote(self.bass_midi_note, self.tick, self.duration_ticks, self.source)
             bass_track = song.tracks['bass']
             bass_track.add(bass_track_note)
     
@@ -455,13 +459,18 @@ def find_next_note(last_note, offset, ups, location = None):
 
 class BassNote(object):
     
-    def __init__(self, midi_note, tick, duration_ticks):
+    def __init__(self, midi_note, tick, duration_ticks, source):
         self.midi_note = midi_note
         self.tick = tick
         self.duration_ticks = duration_ticks
+        self.source = source
 
     def visit_midi_track(self, midi_track):
-        midi_track.add_note(self.midi_note, self.tick, self.duration_ticks)
+        midi_note = self.midi_note
+        if midi_track.transpose != 0:
+            with parse_source(self.source):
+                midi_note = valid_midi_note(midi_note + midi_track.transpose)
+        midi_track.add_note(midi_note, self.tick, self.duration_ticks)
 
 class Note(ParseableFromRegex):
     
@@ -521,7 +530,10 @@ class Note(ParseableFromRegex):
         
     def visit_midi_track(self, midi_track):
         if not self.continued:
-            midi_track.add_note(self.midi_note, self.tick, self.duration_ticks)
+            midi_note = self.midi_note
+            if midi_track.transpose != 0:
+                midi_note = valid_midi_note(midi_note + midi_track.transpose)
+            midi_track.add_note(midi_note, self.tick, self.duration_ticks)
         
     def resolve_from_last_note(self, last_note):
         self.midi_note = valid_midi_note(find_next_note(last_note.midi_note, self.semitone_offset, self.ups, location = self.source))
@@ -787,6 +799,13 @@ class SetSongSubTicksPerTick(ValueSetter):
     
     def resolve(self, song):
         song.unplayed().set_subticks_per_tick(self.value)
+        
+class SetSongTranspose(ValueSetter):
+    key = 'transpose'
+    value_parser = IntValueParser(-127, 127)
+    
+    def resolve(self, song):
+        song.unplayed().transpose = self.value
     
 class SongValuesCommand(ValuesCommand):
     
@@ -795,7 +814,8 @@ class SongValuesCommand(ValuesCommand):
     value_setters = dict(tempo_bpm = SetSongTempoBpm, 
                          time_signature = SetSongTimeSignature, 
                          ticks_per_beat = SetSongTicksPerBeat, 
-                         subticks_per_tick = SetSongSubTicksPerTick)
+                         subticks_per_tick = SetSongSubTicksPerTick, 
+                         transpose = SetSongTranspose)
     
     @classmethod
     def parse_command(cls, qualifier_region, body_region):
@@ -997,7 +1017,7 @@ class Song(Parseable):
     
     def __init__(self, items = None):
         self.items = [] if items is None else items[:]
-        
+        self.transpose = 0
         self.time_signature = (4, 4)
         self.ticks_per_beat = 4
         self.subticks_per_tick = 1

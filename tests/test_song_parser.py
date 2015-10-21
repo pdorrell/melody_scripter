@@ -568,4 +568,37 @@ class TestSongParser(ParserTestCase):
         parse_string = StringToParse('test_string', song_lines)
         with self.parse_exception('Note number -8 < 0', "e, f, "):
             song = Song.parse(parse_string)
+            
+class MidiTrackVisitor(object):
+    def __init__(self, transpose):
+        self.transpose = transpose
+        self.midi_notes = []
+        
+    def add_note(self, note, tick, duration):
+        self.midi_notes.append(note)
+        
+    def add_notes(self, notes, tick, duration):
+        self.midi_notes.append(notes)
     
+class TestTransposition(ParserTestCase):
+    
+    def test_transpose(self):
+        song_lines = ("*song: transpose = 3\n*track.melody: octave = 2\n*track.chord: octave = 1\n*track.bass:octave = 0\n" + 
+                      "c c [C]")
+        parse_string = StringToParse('test_string', song_lines)
+        song = Song.parse(parse_string)
+        note_items = [item for item in song.items if isinstance(item, Note)]
+        first_note = note_items[0]
+        self.assertEquals(first_note.midi_note, 36)
+        track_visitor = MidiTrackVisitor(transpose = song.transpose)
+        first_note.visit_midi_track(track_visitor)
+        self.assertEquals(track_visitor.midi_notes[0], 39)
+        chord_items = [item for item in song.items if isinstance(item, Chord)]
+        first_chord = chord_items[0]
+        self.assertEquals(first_chord.midi_notes, [24, 28, 31])
+        first_chord.visit_midi_track(track_visitor)
+        self.assertEquals(track_visitor.midi_notes[1], [27, 31, 34])
+        self.assertEquals(first_chord.bass_midi_note, 12)
+        bass_note = song.tracks['bass'].items[0]
+        bass_note.visit_midi_track(track_visitor)
+        self.assertEquals(track_visitor.midi_notes[2], 15)

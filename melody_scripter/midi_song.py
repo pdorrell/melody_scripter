@@ -10,6 +10,7 @@ class MidiTrack(object):
     def __init__(self, midi_song, track, name, track_number, channel_number):
         self.midi_song = midi_song
         self.song = midi_song.song
+        self.transpose = self.song.transpose
         self.track = track
         self.track_number = track_number
         self.channel_number = channel_number
