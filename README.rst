@@ -78,6 +78,8 @@ Available property settings for the ``song`` command are:
 +-------------------+--------------------------------------+------------+----------------------------------+
 | subticks_per_tick | Ticks per beat                       | 1          | 1 to 100                         |
 +-------------------+--------------------------------------+------------+----------------------------------+
+| tranpose          | Transposition (in semitones)         | 0          | -127 to 127                      |
++-------------------+--------------------------------------+------------+----------------------------------+
 
 The ``tempo_bpm`` and ``ticks_per_beat`` values both determine corresponding values when
 a Midi file is generated. "Ticks" are the unit of time in the song, and every note
@@ -91,8 +93,11 @@ one crotchet contains a whole number of ticks.)
 If the contents of a bar do not have the correct total length, it's an error.
 (It's OK to have partial bars at the start and end of the song.)
 
-The ``subticks_per_tick`` command is only relevant to the ``groove`` command, and it determines
+The ``subticks_per_tick`` value is only relevant to the ``groove`` command, and it determines
 how many "subticks" there are in each tick. ("Groove" is defined in terms of sub-tick displacements.)
+
+The ``transpose`` value raises or lowers all the note values when generating the Midi file. (An error will occur
+if transposition causes a note to go out of the valid range of 0 to 127.)
 
 
 Track Property Settings
