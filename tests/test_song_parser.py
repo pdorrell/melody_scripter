@@ -8,7 +8,7 @@ from melody_scripter.song_parser import Note, Rest, BarLine, Chord, SongItem, Sc
 from melody_scripter.song_parser import SongValuesCommand, SetSongTempoBpm, SetSongTimeSignature
 from melody_scripter.song_parser import SetSongTicksPerBeat, SetSongSubTicksPerTick
 from melody_scripter.song_parser import TrackValuesCommand, SetTrackInstrument, SetTrackVolume, SetTrackOctave
-from melody_scripter.song_parser import SongCommand, Song, find_next_note
+from melody_scripter.song_parser import SongCommand, Song, find_next_note, Scale, RelativeScale
 from melody_scripter.song_parser import Groove, GrooveCommand
 
 from contextlib import contextmanager
@@ -441,6 +441,36 @@ class TestTimeSignature(ParserTestCase):
         with self.parse_exception('ticks per beat of 1 has to be a multiple of crotchets per beat of 2', 
                                   'ticks_per_beat'):
             song = Song.parse(parse_string)
+            
+class TestScaleDeclaration(ParserTestCase):
+    
+    def test_relative_scale(self):
+        relative_scale = RelativeScale('major', [0, 2, 4, 5, 7, 9, 11])
+        g_pos = relative_scale.get_position(7)
+        self.assertEquals(g_pos, 4)
+        high_f_pos = relative_scale.get_position(17)
+        self.assertEquals(high_f_pos, 10)
+        low_a_pos = relative_scale.get_position(-3)
+        self.assertEquals(low_a_pos, -2)
+        fsharp_pos = relative_scale.get_position(18)
+        self.assertEquals(fsharp_pos, None)
+    
+    def test_parse_scale(self):
+        region = as_region('D+3 minor')
+        scale = Scale.parse(region)
+        self.assertEquals(scale, Scale(ScaleNote(1, sharps = 1, octave = 3), 
+                                       RelativeScale('minor', [0, 2, 3, 5, 7, 8, 10])))
+    
+    def test_parse_song_scale(self):
+        song_lines = "*song: scale = C2 major\n*track.melody: octave = 2\n c e | d e f g | c, d'' "
+        parse_string = StringToParse('test_string', song_lines)
+        song = Song.parse(parse_string)
+        self.assertEquals(song.scale, Scale(ScaleNote(0, octave = 2), 
+                                            RelativeScale('major', [0, 2, 4, 5, 7, 9, 11])))
+        note_items = [item for item in song.items if isinstance(item, Note)]
+        scale_positions = [song.scale.get_position(note.midi_note) for note in note_items]
+        self.assertEquals(scale_positions, [0, 2, 1, 2, 3, 4, 0, 8])
+        
         
         
 class TestSongParser(ParserTestCase):

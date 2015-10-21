@@ -255,17 +255,19 @@ def scale_note(string):
     return ScaleNote.parse_with_octave(string)
     
 class ScaleNote(ParseableFromRegex):
-    def __init__(self, note, sharps = 0, upper_case = True):
+    def __init__(self, note, sharps = 0, upper_case = True, octave = None):
         self.note = note
         self.sharps = sharps
         self.upper_case = upper_case
         self.semitone_offset = DIATONIC_OFFSETS[self.note] + self.sharps
+        if octave:
+            self.set_octave(octave)
         
     def set_sharps(self, sharps = 0):
         self.sharps = sharps
         self.semitone_offset = DIATONIC_OFFSETS[self.note] + self.sharps
         
-    parse_with_octave_regex = regex.compile('^(?P<letter>[a-g])(?P<sharp_or_flat>[+-]?)(?P<octave>[0-9])?$')
+    parse_with_octave_regex = regex.compile('^(?P<letter>[a-gA-G])(?P<sharp_or_flat>[+-]?)(?P<octave>[0-9])?$')
         
     @classmethod
     def parse_with_octave(self, string):
@@ -279,8 +281,9 @@ class ScaleNote(ParseableFromRegex):
                 sharps = -1
             else:
                 sharps = 0
-            scale_note = ScaleNote(scale_number_from_letter(groupdict['letter']), 
-                                   sharps, upper_case = False)
+            letter = groupdict['letter']
+            scale_note = ScaleNote(scale_number_from_letter(letter), 
+                                   sharps, upper_case = letter[0].isupper())
             octave_string = groupdict['octave']
             if octave_string:
                 scale_note.set_octave(int(octave_string))
@@ -303,6 +306,54 @@ class ScaleNote(ParseableFromRegex):
         letter_string = (NOTE_NAMES_UPPER_CASE if self.upper_case else NOTE_NAMES_LOWER_CASE)[self.note]
         sharps_string = "+" * self.sharps if self.sharps > 0 else "-" * -self.sharps
         return letter_string + sharps_string
+    
+class RelativeScale(Parseable):
+
+    named_scale_positions = dict(major = [0, 2, 4, 5, 7, 9, 11], 
+                                 minor = [0, 2, 3, 5, 7, 8, 10])
+    
+    @classmethod
+    def get_named_scale(cls, name):
+        return RelativeScale(name, cls.named_scale_positions[name])
+    
+    def __init__(self, name, positions):
+        self.name = name
+        self.positions = positions
+        self.num_positions = len(positions)
+        self.position_lookup = dict([(position, i) for i, position in enumerate(positions)])
+        
+    def as_data(self):
+        return (self.name, self.positions)
+        
+    def get_position(self, semitone_position):
+        octave_semitone_position = semitone_position % 12
+        scale_position = self.position_lookup.get(octave_semitone_position)
+        if scale_position is None:
+            return None
+        else:
+            return self.num_positions * ((semitone_position - octave_semitone_position)/12) + scale_position
+        
+class Scale(ParseableFromRegex):
+    
+    description = 'scale'
+    
+    parse_regex = regex.compile(r'(?P<root_note>\S+)\s+(?P<scale_name>major|minor)')
+    
+    def __init__(self, scale_note, relative_scale):
+        self.scale_note = scale_note
+        self.relative_scale = relative_scale
+        
+    def as_data(self):
+        return (self.scale_note, self.relative_scale)
+    
+    @classmethod
+    def parse_from_matched_region(cls, region):
+        scale_note = ScaleNote.parse_with_octave(region.named_group('root_note').value)
+        scale_name = region.named_group('scale_name').value
+        return Scale(scale_note, RelativeScale.get_named_scale(scale_name))
+    
+    def get_position(self, midi_note):
+        return self.relative_scale.get_position(midi_note - self.scale_note.midi_note)
     
 class Chord(ParseableFromRegex):
     
@@ -683,30 +734,31 @@ class SongItems(ParseItems):
 
 class IntValueParser(object):
     
-    def __init__(self, min_value, max_value):
+    def __init__(self, label, min_value, max_value):
+        self.label = label
         self.min_value = min_value
         self.max_value = max_value
         
-    def raise_invalid_value_exception(self, label, value, value_region):
+    def raise_invalid_value_exception(self, value, value_region):
         raise ParseException('Invalid value for %s: %r - must be an integer from %s to %s' %
-                             (label, value, self.min_value, self.max_value), 
+                             (self.label, value, self.min_value, self.max_value), 
                              value_region)
         
-    def parse(self, label, value_region):
+    def parse(self, value_region):
         value_string = value_region.value
         try:
             value = int(value_string)
         except ValueError:
-            self.raise_invalid_value_exception(label, value_string, value_region)
+            self.raise_invalid_value_exception(value_string, value_region)
         if value < self.min_value or value > self.max_value:
-            self.raise_invalid_value_exception(label, value, value_region)
+            self.raise_invalid_value_exception(value, value_region)
         return value
     
 class TimeSignatureParser(object):
     
     parse_regex = regex.compile(r'(?P<numerator>[1-9][0-9]*)\s*[/](?P<denominator>2|4|8|16|32)')
     
-    def parse(self, label, value_region):
+    def parse(self, value_region):
         value_region.parse(self.parse_regex)
         numerator = int(value_region.match_groupdict['numerator'])
         denominator = int(value_region.match_groupdict['denominator'])
@@ -722,7 +774,7 @@ class ValueSetter(Parseable):
         
     @classmethod
     def parse_value(cls, value_region):
-        value = cls.value_parser.parse(cls.key, value_region)
+        value = cls.value_parser.parse(value_region)
         value_setter = cls(value)
         return value_setter
     
@@ -775,7 +827,7 @@ class ValuesCommand(Command):
     
 class SetSongTempoBpm(ValueSetter):
     key = 'tempo_bpm'
-    value_parser = IntValueParser(1, 1000)
+    value_parser = IntValueParser('tempo_bpm', 1, 1000)
     
     def resolve(self, song):
         song.unplayed().tempo_bpm = self.value
@@ -786,24 +838,27 @@ class SetSongTimeSignature(ValueSetter):
     
     def resolve(self, song):
         song.unplayed().set_time_signature(self.value)
+        
+class SetSongScale(ValueSetter):
+    value_parser = Scale
+    
+    def resolve(self, song):
+        song.unplayed().scale = self.value
     
 class SetSongTicksPerBeat(ValueSetter):
-    key = 'ticks_per_beat'
-    value_parser = IntValueParser(1, 2000)
+    value_parser = IntValueParser('ticks_per_beat', 1, 2000)
     
     def resolve(self, song):
         song.unplayed().set_ticks_per_beat(self.value)
     
 class SetSongSubTicksPerTick(ValueSetter):
-    key = 'subticks_per_tick'
-    value_parser = IntValueParser(1, 100)
+    value_parser = IntValueParser('subticks_per_tick', 1, 100)
     
     def resolve(self, song):
         song.unplayed().set_subticks_per_tick(self.value)
         
 class SetSongTranspose(ValueSetter):
-    key = 'transpose'
-    value_parser = IntValueParser(-127, 127)
+    value_parser = IntValueParser('transpose', -127, 127)
     
     def resolve(self, song):
         song.unplayed().transpose = self.value
@@ -816,7 +871,8 @@ class SongValuesCommand(ValuesCommand):
                          time_signature = SetSongTimeSignature, 
                          ticks_per_beat = SetSongTicksPerBeat, 
                          subticks_per_tick = SetSongSubTicksPerTick, 
-                         transpose = SetSongTranspose)
+                         transpose = SetSongTranspose, 
+                         scale = SetSongScale)
     
     @classmethod
     def parse_command(cls, qualifier_region, body_region):
@@ -837,22 +893,19 @@ class SongValuesCommand(ValuesCommand):
     
 
 class SetTrackInstrument(ValueSetter):
-    key = 'instrument'
-    value_parser = IntValueParser(0, 127)
+    value_parser = IntValueParser('instrument', 0, 127)
     
     def resolve(self, track):
         track.unplayed().instrument = self.value
     
 class SetTrackVolume(ValueSetter):
-    key = 'volume'
-    value_parser = IntValueParser(0, 127)
+    value_parser = IntValueParser('volume', 0, 127)
     
     def resolve(self, track):
         track.unplayed().volume = self.value
 
 class SetTrackOctave(ValueSetter):
-    key = 'octave'
-    value_parser = IntValueParser(-1, 10)
+    value_parser = IntValueParser('octave', -1, 10)
     
     def resolve(self, track):
         track.unplayed().octave = self.value
