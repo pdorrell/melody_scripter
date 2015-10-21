@@ -238,7 +238,7 @@ class BarLine(ParseableFromRegex):
             if bar_ticks != song.ticks_per_bar:
                 raise ParseException("Completed bar is %s ticks long, but expected %s ticks" %
                                      (bar_ticks, song.ticks_per_bar), self.source)
-        song.last_bar_tick = song.tick
+        song.record_bar_tick(song.tick)
         song.current_duration = DEFAULT_DURATION
     
     @classmethod
@@ -1091,6 +1091,17 @@ class Song(Parseable):
         self.groove = Groove(self.beats_per_bar, self.ticks_per_beat, self.subticks_per_tick, 
                              self.groove_delays)
         
+    def record_bar_tick(self, tick):
+        if self.last_bar_tick is None:
+            if tick == 0:
+                self.bar_ticks = [tick]
+            else:
+                first_tick = tick - self.ticks_per_bar
+                self.bar_ticks = [first_tick, tick]
+        else:
+            self.bar_ticks.append(tick)
+        self.last_bar_tick = tick
+        
     def clear_items(self):
         self.items = [item for item in self.items if not item.cuttable]
         self.set_to_start()
@@ -1160,6 +1171,8 @@ class Song(Parseable):
         part_bar_ticks = self.tick if self.last_bar_tick is None else self.tick - self.last_bar_tick
         if part_bar_ticks > self.ticks_per_bar:
             raise ParseException('Last part bar has %s ticks > %s ticks per bar' % (part_bar_ticks, self.ticks_per_bar))
+        if self.last_bar_tick is not None:
+            self.bar_ticks.append(self.last_bar_tick + self.ticks_per_bar)  # so self.bar_ticks includes all bars including part-bars
             
     def finish(self):
         self.check_last_part_bar()

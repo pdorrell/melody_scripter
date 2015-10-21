@@ -510,6 +510,7 @@ class TestSongParser(ParserTestCase):
         
         self.assertEquals(chord_track.items[0].midi_notes, [36, 40, 43])
         self.assertEquals(chord_track.items[1].bass_midi_note, 29)
+        self.assertEquals(song.bar_ticks, [0, 16, 32])
         
     def test_parse_song_cut(self):
         song_lines = """
