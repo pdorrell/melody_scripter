@@ -45,7 +45,7 @@ class ParseException(Exception):
         self.location = location
         
     def show_error(self):
-        if self.location:
+        if self.location is None:
             raise Exception('No location given for ParseException (with message %s)' % self.message)
         self.location.show_error(self.message)
         
@@ -532,7 +532,8 @@ class Note(ParseableFromRegex):
         if not self.continued:
             midi_note = self.midi_note
             if midi_track.transpose != 0:
-                midi_note = valid_midi_note(midi_note + midi_track.transpose)
+                with parse_source(self.source):
+                    midi_note = valid_midi_note(midi_note + midi_track.transpose)
             midi_track.add_note(midi_note, self.tick, self.duration_ticks)
         
     def resolve_from_last_note(self, last_note):

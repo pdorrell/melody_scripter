@@ -582,6 +582,26 @@ class MidiTrackVisitor(object):
     
 class TestTransposition(ParserTestCase):
     
+    def test_invalid_transpose_value(self):
+        song_lines = ("*song: transpose = 310\nc c")
+        parse_string = StringToParse('test_string', song_lines)
+        with self.parse_exception('Invalid value for transpose: 310 - must be an integer from -127 to 127', 
+                                  '310'):
+            song = Song.parse(parse_string)
+            
+    def test_transpose_out_of_range(self):
+        song_lines = ("*song: transpose = 0\n*track.melody: octave = 8\n c")
+        parse_string = StringToParse('test_string', song_lines)
+        song = Song.parse(parse_string)
+        song_lines = ("*song: transpose = 100\n*track.melody: octave = 8\n c")
+        parse_string = StringToParse('test_string', song_lines)
+        song = Song.parse(parse_string)
+        track_visitor = MidiTrackVisitor(transpose = song.transpose)
+        note_items = [item for item in song.items if isinstance(item, Note)]
+        with self.parse_exception('Note number 208 > 127', 'c'):
+            for note in note_items:
+                note.visit_midi_track(track_visitor)
+    
     def test_transpose(self):
         song_lines = ("*song: transpose = 3\n*track.melody: octave = 2\n*track.chord: octave = 1\n*track.bass:octave = 0\n" + 
                       "c c [C]")
